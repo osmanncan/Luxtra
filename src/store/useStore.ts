@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -145,7 +146,14 @@ export const useStore = create<AppState>()(
       })),
 
       setLanguage: (language) => set({ language }),
-      setCurrency: (currency) => set({ currency }),
+      setCurrency: (currency) => set((state) => {
+        if (Platform.OS === 'android') {
+            import('../services/widgetService').then(mod => {
+                mod.updateAndroidWidget(state.subscriptions, currency);
+            });
+        }
+        return { currency };
+      }),
 
       // Theme
       setTheme: (theme) => set({ theme }),
@@ -239,15 +247,35 @@ export const useStore = create<AppState>()(
       ],
 
       addSubscription: (sub) =>
-        set((state) => ({ subscriptions: [...state.subscriptions, sub] })),
+        set((state) => {
+            const newSubs = [...state.subscriptions, sub];
+            if (Platform.OS === 'android') {
+                import('../services/widgetService').then(mod => {
+                    mod.updateAndroidWidget(newSubs, state.currency);
+                });
+            }
+            return { subscriptions: newSubs };
+        }),
       removeSubscription: (id) =>
-        set((state) => ({
-          subscriptions: state.subscriptions.filter((s) => s.id !== id),
-        })),
+        set((state) => {
+            const newSubs = state.subscriptions.filter((s) => s.id !== id);
+             if (Platform.OS === 'android') {
+                import('../services/widgetService').then(mod => {
+                    mod.updateAndroidWidget(newSubs, state.currency);
+                });
+            }
+            return { subscriptions: newSubs };
+        }),
       updateSubscription: (id, updates) =>
-        set((state) => ({
-          subscriptions: state.subscriptions.map((s) => s.id === id ? { ...s, ...updates } : s)
-        })),
+        set((state) => {
+            const newSubs = state.subscriptions.map((s) => s.id === id ? { ...s, ...updates } : s);
+             if (Platform.OS === 'android') {
+                import('../services/widgetService').then(mod => {
+                    mod.updateAndroidWidget(newSubs, state.currency);
+                });
+            }
+            return { subscriptions: newSubs };
+        }),
       markSubscriptionPaid: (id) =>
         set((state) => ({
           subscriptions: state.subscriptions.map((s) =>
@@ -277,8 +305,12 @@ export const useStore = create<AppState>()(
       removeCustomCategory: (name) => set((state) => {
         const newCats = { ...state.customCategories };
         delete newCats[name];
-        return { customCategories: newCats };
-      }),
+        return { customCategories: newCats };if (Platform.OS === 'android') {
+  // We need to import dynamically to avoid issues on web/iOS during build time if package is missing
+  import('../services/widgetService').then(mod => {
+    mod.updateAndroidWidget(get().subscriptions, get().currency);
+  });
+}      }),
     }),
     {
       name: 'lifeos-storage',

@@ -99,7 +99,7 @@ export default function OverviewScreen() {
     <View style={[s.container, { backgroundColor: c.base }]}>
       <StatusBar barStyle={c.statusBarStyle} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
           {/* Header */}
           <View style={s.header}>
@@ -306,7 +306,7 @@ export default function OverviewScreen() {
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 64 : 48,
+    paddingTop: Platform.OS === 'ios' ? 60 : 44,
     paddingHorizontal: 20,
   },
   header: {

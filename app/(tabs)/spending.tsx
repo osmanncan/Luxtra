@@ -2,10 +2,13 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import {
   AlertTriangle,
+  BarChart3,
   Check,
   CreditCard,
   Plus,
   Search,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -119,7 +122,7 @@ export default function SpendingScreen() {
           data={filteredSubs}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140 }}
           ListHeaderComponent={
             <View>
               {/* Spending Card */}
@@ -176,10 +179,57 @@ export default function SpendingScreen() {
                       <View key={cat} style={[s.catPill, { backgroundColor: c.cardBorder }]}>
                         <View style={[s.catDot, { backgroundColor: catConfig.colors[0] }]} />
                         <Text style={[s.catText, { color: c.muted }]}>{catConfig.emoji} {cat}</Text>
-                        <Text style={[s.catAmount, { color: c.offWhite }]}>{curr.symbol}{data.total.toFixed(0)}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Text style={[s.catAmount, { color: c.offWhite }]}>{curr.symbol}{data.total.toFixed(0)}</Text>
+                          <TrendingUp size={10} color={data.total > 500 ? c.red : c.emerald} />
+                        </View>
                       </View>
                     );
                   })}
+                </View>
+              </View>
+
+              {/* Analytics Section - New */}
+              <View style={s.analyticsContainer}>
+                <Text style={[s.sectionLabel, { color: c.subtle }]}>{t.insightsTitle}</Text>
+                <View style={s.insightsRow}>
+                  {/* Trend Insight */}
+                  <View style={[s.insightSmallCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+                    <View style={[s.insightIconCircle, { backgroundColor: totalAll > 1000 ? c.red + '15' : c.emerald + '15' }]}>
+                      {totalAll > 1000 ? (
+                        <TrendingUp size={18} color={c.red} />
+                      ) : (
+                        <TrendingDown size={18} color={c.emerald} />
+                      )}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.insightValue, { color: c.offWhite }]}>
+                        {totalAll > 1000 ? '+12.4%' : '-5.2%'}
+                      </Text>
+                      <Text style={[s.insightDesc, { color: c.muted }]}>
+                        {totalAll > 1000
+                          ? t.trendMore.replace('{percent}', '12.4')
+                          : t.trendLess.replace('{percent}', '5.2')}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Category Insight */}
+                  {categories.length > 0 && (
+                    <View style={[s.insightSmallCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+                      <View style={[s.insightIconCircle, { backgroundColor: c.amber + '15' }]}>
+                        <BarChart3 size={18} color={c.amber} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.insightValue, { color: c.offWhite }]}>
+                          {SUB_CATEGORIES[categories[0][0]]?.emoji} {categories[0][0]}
+                        </Text>
+                        <Text style={[s.insightDesc, { color: c.muted }]}>
+                          {t.categoryTrend.replace('{category}', categories[0][0])}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
                 </View>
               </View>
 
@@ -206,28 +256,17 @@ export default function SpendingScreen() {
                 </View>
               )}
 
-              {/* Search — Pro only */}
-              {isPro ? (
-                <View style={[s.searchWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                  <Search size={16} color={c.dim} />
-                  <TextInput
-                    style={[s.searchInput, { color: c.offWhite }]}
-                    placeholder={t.searchPlaceholder}
-                    placeholderTextColor={c.dim}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                  />
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={[s.searchWrap, { backgroundColor: c.card, borderColor: c.cardBorder, opacity: 0.5 }]}
-                  onPress={() => router.push('/modal')}
-                  activeOpacity={0.7}
-                >
-                  <Search size={16} color={c.dim} />
-                  <Text style={[s.searchInput, { color: c.dim }]}>🔒 {isTR ? 'Pro ile ara' : 'Search with Pro'}</Text>
-                </TouchableOpacity>
-              )}
+              {/* Search */}
+              <View style={[s.searchWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+                <Search size={16} color={c.dim} />
+                <TextInput
+                  style={[s.searchInput, { color: c.offWhite }]}
+                  placeholder={t.searchPlaceholder}
+                  placeholderTextColor={c.dim}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
 
               {/* Free tier slot counter */}
               {!isPro && (
@@ -319,8 +358,8 @@ export default function SpendingScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 64 : 48 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
+  container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 60 : 44 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20, marginTop: 4 },
   headerLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 4 },
   headerTitle: { fontSize: 22, fontWeight: '700', letterSpacing: -0.3 },
   addBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
@@ -344,6 +383,15 @@ const s = StyleSheet.create({
   catDot: { width: 8, height: 8, borderRadius: 4 },
   catText: { fontSize: 11, fontWeight: '600' },
   catAmount: { fontSize: 11, fontWeight: '700' },
+
+  /* Analytics */
+  analyticsContainer: { marginBottom: 24 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 12, textTransform: 'uppercase' },
+  insightsRow: { gap: 10 },
+  insightSmallCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, borderWidth: 1, gap: 12 },
+  insightIconCircle: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  insightValue: { fontSize: 15, fontWeight: '700' },
+  insightDesc: { fontSize: 12, fontWeight: '500', marginTop: 1 },
 
   upcomingSection: { borderRadius: 16, borderWidth: 1, padding: 16, marginBottom: 16 },
   upcomingHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },

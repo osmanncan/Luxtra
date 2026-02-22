@@ -1,14 +1,13 @@
 // Free vs Pro feature definitions
 export const FREE_LIMITS = {
-    maxSubscriptions: 3,
-    maxResponsibilities: 5,
+    maxSubscriptions: 7,
+    maxResponsibilities: 10,
 };
 
 export const PRO_FEATURES = {
     unlimitedTracking: 'unlimited_tracking',
     aiInsights: 'ai_insights',
     budgetTracking: 'budget_tracking',
-    searchFilter: 'search_filter',
     recurringTasks: 'recurring_tasks',
 } as const;
 
@@ -16,7 +15,7 @@ export type ProFeature = typeof PRO_FEATURES[keyof typeof PRO_FEATURES];
 
 export function isFeatureLocked(feature: ProFeature, isPro: boolean): boolean {
     if (isPro) return false;
-    return true; // All pro features are locked for free users
+    return true;
 }
 
 export function canAddSubscription(currentCount: number, isPro: boolean): boolean {
@@ -45,11 +44,11 @@ export const FEATURE_COMPARISON = {
                 { text: `Up to ${FREE_LIMITS.maxSubscriptions} subscriptions`, included: true },
                 { text: `Up to ${FREE_LIMITS.maxResponsibilities} responsibilities`, included: true },
                 { text: 'Timeline view', included: true },
+                { text: 'Search & filter', included: true },
                 { text: 'Dark/Light theme', included: true },
                 { text: 'TR/EN language', included: true },
                 { text: 'AI insights', included: false },
                 { text: 'Budget tracking', included: false },
-                { text: 'Search & filter', included: false },
                 { text: 'Recurring tasks', included: false },
                 { text: 'Unlimited tracking', included: false },
             ],
@@ -62,11 +61,9 @@ export const FEATURE_COMPARISON = {
                 { text: 'Unlimited subscriptions', included: true },
                 { text: 'Unlimited responsibilities', included: true },
                 { text: 'Timeline view', included: true },
-                { text: 'Dark/Light theme', included: true },
-                { text: 'TR/EN language', included: true },
+                { text: 'Search & filter', included: true },
                 { text: 'AI insights', included: true },
                 { text: 'Budget tracking', included: true },
-                { text: 'Search & filter', included: true },
                 { text: 'Recurring tasks', included: true },
                 { text: 'Unlimited tracking', included: true },
             ],
@@ -80,11 +77,11 @@ export const FEATURE_COMPARISON = {
                 { text: `${FREE_LIMITS.maxSubscriptions} aboneliğe kadar`, included: true },
                 { text: `${FREE_LIMITS.maxResponsibilities} sorumluluğa kadar`, included: true },
                 { text: 'Zaman çizelgesi', included: true },
+                { text: 'Arama & filtreleme', included: true },
                 { text: 'Koyu/Açık tema', included: true },
                 { text: 'TR/EN dil desteği', included: true },
                 { text: 'AI önerileri', included: false },
                 { text: 'Bütçe takibi', included: false },
-                { text: 'Arama & filtreleme', included: false },
                 { text: 'Tekrarlayan görevler', included: false },
                 { text: 'Sınırsız takip', included: false },
             ],
@@ -97,11 +94,9 @@ export const FEATURE_COMPARISON = {
                 { text: 'Sınırsız abonelik', included: true },
                 { text: 'Sınırsız sorumluluk', included: true },
                 { text: 'Zaman çizelgesi', included: true },
-                { text: 'Koyu/Açık tema', included: true },
-                { text: 'TR/EN dil desteği', included: true },
+                { text: 'Arama & filtreleme', included: true },
                 { text: 'AI önerileri', included: true },
                 { text: 'Bütçe takibi', included: true },
-                { text: 'Arama & filtreleme', included: true },
                 { text: 'Tekrarlayan görevler', included: true },
                 { text: 'Sınırsız takip', included: true },
             ],

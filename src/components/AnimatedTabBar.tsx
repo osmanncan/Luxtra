@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeColors } from '../../src/store/theme';
 
 const TAB_ICONS: Record<string, any> = {
@@ -137,9 +138,20 @@ function AnimatedTabItem({
 
 export default function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const colors = useThemeColors();
+    const insets = useSafeAreaInsets();
+    const bottomPad = Math.max(insets.bottom, Platform.OS === 'android' ? 8 : 0);
+    const barHeight = 58 + bottomPad;
 
     return (
-        <View style={[s.container, { backgroundColor: colors.tabBarBg, borderTopColor: colors.tabBarBorder }]}>
+        <View style={[
+            s.container,
+            {
+                backgroundColor: colors.tabBarBg,
+                borderTopColor: colors.tabBarBorder,
+                height: barHeight,
+                paddingBottom: bottomPad,
+            }
+        ]}>
             {state.routes.map((route, index) => {
                 const { options } = descriptors[route.key];
                 const label = (options.tabBarLabel !== undefined
@@ -192,9 +204,7 @@ const s = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: Platform.OS === 'ios' ? 88 : 70,
         borderTopWidth: 1,
-        paddingBottom: Platform.OS === 'ios' ? 24 : 8,
         paddingTop: 8,
     },
     tabItem: {

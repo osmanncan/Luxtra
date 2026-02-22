@@ -1,11 +1,12 @@
+import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
-import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Calendar, RefreshCw, Shield } from 'lucide-react-native';
+import { ArrowLeft, Calendar, CalendarDays, RefreshCw, Shield } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
     Alert,
     KeyboardAvoidingView,
+    Modal,
     Platform,
     ScrollView,
     StyleSheet,
@@ -17,6 +18,13 @@ import {
 import { canAddResponsibility, FREE_LIMITS } from '../src/store/proFeatures';
 import { useThemeColors } from '../src/store/theme';
 import { useStore } from '../src/store/useStore';
+
+type NotificationsModule = typeof import('expo-notifications');
+
+const isExpoGo = Constants.appOwnership === 'expo';
+const Notifications: NotificationsModule | null = !isExpoGo
+    ? (require('expo-notifications') as NotificationsModule)
+    : null;
 
 export default function AddResponsibility() {
     const router = useRouter();
@@ -31,12 +39,43 @@ export default function AddResponsibility() {
     const [daysDue, setDaysDue] = useState('');
     const [isRecurring, setIsRecurring] = useState(false);
     const [recurringMonths, setRecurringMonths] = useState('');
+
+    // Reminder state
+    const [reminderType, setReminderType] = useState<'days' | 'months' | 'custom'>('days');
     const [reminderDays, setReminderDays] = useState(1);
+    const [reminderMonths, setReminderMonths] = useState(1);
+
+    // Custom date picker state
+    const [showCustomDate, setShowCustomDate] = useState(false);
+    const [customDay, setCustomDay] = useState('');
+    const [customMonth, setCustomMonth] = useState('');
+    const [customYear, setCustomYear] = useState(new Date().getFullYear().toString());
+
+    const getCustomReminderDate = (): Date | null => {
+        const d = parseInt(customDay);
+        const m = parseInt(customMonth) - 1;
+        const y = parseInt(customYear);
+        if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+        const date = new Date(y, m, d);
+        if (isNaN(date.getTime())) return null;
+        return date;
+    };
+
+    const getReminderLabel = (): string => {
+        if (reminderType === 'days') {
+            return isTR ? `${reminderDays} gün önce` : `${reminderDays} day(s) before`;
+        }
+        if (reminderType === 'months') {
+            return isTR ? `${reminderMonths} ay önce` : `${reminderMonths} month(s) before`;
+        }
+        const d = getCustomReminderDate();
+        if (!d) return isTR ? 'Tarih seç' : 'Pick date';
+        return d.toLocaleDateString(isTR ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
 
     const handleSave = async () => {
         if (!title.trim()) return;
 
-        // Check free limit
         if (!canAddResponsibility(tasks.length, isPro)) {
             Alert.alert(
                 isTR ? 'Limit Aşıldı' : 'Limit Reached',
@@ -51,7 +90,6 @@ export default function AddResponsibility() {
             return;
         }
 
-        // Recurring is Pro-only
         if (isRecurring && !isPro) {
             Alert.alert(
                 isTR ? 'Pro Özelliği' : 'Pro Feature',
@@ -82,16 +120,29 @@ export default function AddResponsibility() {
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-        // Schedule notification
-        const remindDate = new Date(due);
-        remindDate.setDate(remindDate.getDate() - reminderDays);
+        // Calculate reminder date
+        let remindDate: Date | null = null;
+        if (reminderType === 'days') {
+            remindDate = new Date(due);
+            remindDate.setDate(remindDate.getDate() - reminderDays);
+        } else if (reminderType === 'months') {
+            remindDate = new Date(due);
+            remindDate.setMonth(remindDate.getMonth() - reminderMonths);
+        } else if (reminderType === 'custom') {
+            remindDate = getCustomReminderDate();
+        }
 
-        if (remindDate > new Date()) {
+        if (remindDate) {
+            // Gelişmiş Bildirim: Hatırlatmayı sabah 09:00'a ayarla
+            remindDate.setHours(9, 0, 0, 0);
+        }
+
+        if (Notifications && remindDate && remindDate > new Date()) {
             try {
                 await Notifications.scheduleNotificationAsync({
                     content: {
                         title: isTR ? 'Sorumluluk Hatırlatması 📌' : 'Responsibility Reminder 📌',
-                        body: isTR ? `"${title.trim()}" yarın son gün!` : `"${title.trim()}" is due tomorrow!`,
+                        body: isTR ? `"${title.trim()}" yaklaşıyor!` : `"${title.trim()}" is coming up!`,
                     },
                     trigger: {
                         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -113,7 +164,7 @@ export default function AddResponsibility() {
             {/* Header */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={[s.backBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                    <ArrowLeft size={22} color={c.offWhite} />
+                    <ArrowLeft size={22} color={c.offWhite} strokeWidth={2.5} />
                 </TouchableOpacity>
                 <Text style={[s.headerTitle, { color: c.offWhite }]}>
                     {isTR ? 'Yeni Sorumluluk' : 'New Responsibility'}
@@ -142,7 +193,7 @@ export default function AddResponsibility() {
                         </Text>
                     </View>
 
-                    {/* Form */}
+                    {/* Title */}
                     <Text style={[s.label, { color: c.subtle }]}>
                         {isTR ? 'BAŞLIK' : 'TITLE'}
                     </Text>
@@ -157,6 +208,7 @@ export default function AddResponsibility() {
                         />
                     </View>
 
+                    {/* Due in days */}
                     <Text style={[s.label, { color: c.subtle }]}>
                         {isTR ? 'KAÇ GÜN SONRA' : 'DUE IN (DAYS)'}
                     </Text>
@@ -219,34 +271,96 @@ export default function AddResponsibility() {
                         </View>
                     )}
 
-                    {/* Reminder */}
+                    {/* Reminder Type Selector */}
                     <Text style={[s.label, { color: c.subtle, marginTop: 16 }]}>
                         {isTR ? 'HATIRLATMA' : 'REMINDER'}
                     </Text>
-                    <View style={s.recurOptions}>
-                        {[1, 3, 7].map(d => (
+
+                    {/* Type tabs */}
+                    <View style={[s.reminderTypeTabs, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+                        {(['days', 'months', 'custom'] as const).map(type => (
                             <TouchableOpacity
-                                key={d}
-                                style={[s.recurOption, {
-                                    backgroundColor: reminderDays === d ? c.emerald + '20' : c.card,
-                                    borderColor: reminderDays === d ? c.emerald : c.cardBorder,
+                                key={type}
+                                style={[s.reminderTypeTab, {
+                                    backgroundColor: reminderType === type ? c.emerald + '20' : 'transparent',
+                                    borderColor: reminderType === type ? c.emerald : 'transparent',
                                 }]}
-                                onPress={() => setReminderDays(d)}
+                                onPress={() => {
+                                    setReminderType(type);
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    if (type === 'custom') setShowCustomDate(true);
+                                }}
                             >
-                                <Text style={[s.recurOptionText, {
-                                    color: reminderDays === d ? c.emerald : c.muted
-                                }]}>
-                                    {d} {isTR ? (d === 7 ? 'hf' : 'gün') : (d === 7 ? 'wk' : 'd')}
+                                <Text style={[s.reminderTypeLabel, { color: reminderType === type ? c.emerald : c.subtle }]}>
+                                    {type === 'days' ? (isTR ? 'Gün' : 'Days') :
+                                        type === 'months' ? (isTR ? 'Ay' : 'Months') :
+                                            (isTR ? 'Özel' : 'Custom')}
                                 </Text>
                             </TouchableOpacity>
                         ))}
                     </View>
 
+                    {/* Days options */}
+                    {reminderType === 'days' && (
+                        <View style={s.recurOptions}>
+                            {[1, 2, 3, 5, 7].map(d => (
+                                <TouchableOpacity
+                                    key={d}
+                                    style={[s.recurOption, {
+                                        backgroundColor: reminderDays === d ? c.emerald + '20' : c.card,
+                                        borderColor: reminderDays === d ? c.emerald : c.cardBorder,
+                                    }]}
+                                    onPress={() => setReminderDays(d)}
+                                >
+                                    <Text style={[s.recurOptionText, { color: reminderDays === d ? c.emerald : c.muted }]}>
+                                        {d} {isTR ? (d === 7 ? 'hf' : 'gün') : (d === 7 ? 'wk' : 'd')}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Months options */}
+                    {reminderType === 'months' && (
+                        <View style={s.recurOptions}>
+                            {[1, 2, 3].map(m => (
+                                <TouchableOpacity
+                                    key={m}
+                                    style={[s.recurOption, {
+                                        backgroundColor: reminderMonths === m ? c.emerald + '20' : c.card,
+                                        borderColor: reminderMonths === m ? c.emerald : c.cardBorder,
+                                    }]}
+                                    onPress={() => setReminderMonths(m)}
+                                >
+                                    <Text style={[s.recurOptionText, { color: reminderMonths === m ? c.emerald : c.muted }]}>
+                                        {m} {isTR ? 'ay' : 'mo'}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Custom date summary */}
+                    {reminderType === 'custom' && (
+                        <TouchableOpacity
+                            style={[s.customDateBtn, { backgroundColor: c.card, borderColor: c.emerald + '40' }]}
+                            onPress={() => setShowCustomDate(true)}
+                        >
+                            <CalendarDays size={18} color={c.emerald} />
+                            <Text style={[s.customDateLabel, { color: c.offWhite }]}>
+                                {getReminderLabel()}
+                            </Text>
+                            <Text style={[{ fontSize: 12, color: c.emerald, fontWeight: '600' }]}>
+                                {isTR ? 'Değiştir' : 'Change'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+
                     {/* Info */}
                     <View style={[s.infoCard, { backgroundColor: c.emerald + '10', borderColor: c.emerald + '20' }]}>
                         <Shield size={16} color={c.emerald} />
                         <Text style={[s.infoText, { color: c.subtle }]}>
-                            {isTR ? 'Son tarihten önce sana akıllı bir hatırlatma göndereceğiz.' : "We'll send you a smart reminder before the due date."}
+                            {isTR ? 'Seçtiğin tarihte akıllı bir hatırlatma göndereceğiz.' : "We'll send you a smart reminder on your chosen date."}
                         </Text>
                     </View>
 
@@ -263,6 +377,86 @@ export default function AddResponsibility() {
                     </TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* Custom Date Modal */}
+            <Modal visible={showCustomDate} transparent animationType="slide">
+                <View style={s.modalOverlay}>
+                    <View style={[s.modalCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+                        <Text style={[s.modalTitle, { color: c.offWhite }]}>
+                            {isTR ? 'Özel Hatırlatma Tarihi' : 'Custom Reminder Date'}
+                        </Text>
+                        <Text style={[s.modalSub, { color: c.subtle }]}>
+                            {isTR ? 'Hatırlatma için bir tarih seç' : 'Pick a date for the reminder'}
+                        </Text>
+
+                        <View style={s.dateRow}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[s.dateLabel, { color: c.subtle }]}>{isTR ? 'GÜN' : 'DAY'}</Text>
+                                <TextInput
+                                    style={[s.dateInput, { backgroundColor: c.base, borderColor: c.cardBorder, color: c.offWhite }]}
+                                    placeholder="15"
+                                    placeholderTextColor={c.dim}
+                                    keyboardType="number-pad"
+                                    maxLength={2}
+                                    value={customDay}
+                                    onChangeText={setCustomDay}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[s.dateLabel, { color: c.subtle }]}>{isTR ? 'AY' : 'MONTH'}</Text>
+                                <TextInput
+                                    style={[s.dateInput, { backgroundColor: c.base, borderColor: c.cardBorder, color: c.offWhite }]}
+                                    placeholder="06"
+                                    placeholderTextColor={c.dim}
+                                    keyboardType="number-pad"
+                                    maxLength={2}
+                                    value={customMonth}
+                                    onChangeText={setCustomMonth}
+                                />
+                            </View>
+                            <View style={{ flex: 1.2 }}>
+                                <Text style={[s.dateLabel, { color: c.subtle }]}>{isTR ? 'YIL' : 'YEAR'}</Text>
+                                <TextInput
+                                    style={[s.dateInput, { backgroundColor: c.base, borderColor: c.cardBorder, color: c.offWhite }]}
+                                    placeholder="2026"
+                                    placeholderTextColor={c.dim}
+                                    keyboardType="number-pad"
+                                    maxLength={4}
+                                    value={customYear}
+                                    onChangeText={setCustomYear}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={s.modalBtns}>
+                            <TouchableOpacity
+                                style={[s.modalCancelBtn, { borderColor: c.cardBorder }]}
+                                onPress={() => { setReminderType('days'); setShowCustomDate(false); }}
+                            >
+                                <Text style={[{ fontSize: 15, fontWeight: '600', color: c.subtle }]}>
+                                    {isTR ? 'İptal' : 'Cancel'}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[s.modalConfirmBtn, { backgroundColor: c.emerald }]}
+                                onPress={() => {
+                                    const d = getCustomReminderDate();
+                                    if (!d) {
+                                        Alert.alert(isTR ? 'Geçersiz Tarih' : 'Invalid Date', isTR ? 'Lütfen geçerli bir tarih gir.' : 'Please enter a valid date.');
+                                        return;
+                                    }
+                                    setShowCustomDate(false);
+                                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                                }}
+                            >
+                                <Text style={[{ fontSize: 15, fontWeight: '700', color: '#0F1419' }]}>
+                                    {isTR ? 'Tamam' : 'Confirm'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -345,6 +539,42 @@ const s = StyleSheet.create({
         fontWeight: '500',
     },
 
+    /* Reminder */
+    reminderTypeTabs: {
+        flexDirection: 'row',
+        borderRadius: 14,
+        borderWidth: 1,
+        padding: 4,
+        marginBottom: 12,
+        gap: 4,
+    },
+    reminderTypeTab: {
+        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 10,
+        alignItems: 'center',
+        borderWidth: 1,
+    },
+    reminderTypeLabel: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    customDateBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        borderWidth: 1,
+        borderRadius: 14,
+        paddingHorizontal: 18,
+        paddingVertical: 14,
+        marginBottom: 8,
+    },
+    customDateLabel: {
+        flex: 1,
+        fontSize: 15,
+        fontWeight: '600',
+    },
+
     /* Info */
     infoCard: {
         flexDirection: 'row',
@@ -354,6 +584,7 @@ const s = StyleSheet.create({
         paddingVertical: 14,
         gap: 10,
         marginBottom: 28,
+        marginTop: 8,
         borderWidth: 1,
     },
     infoText: {
@@ -409,5 +640,66 @@ const s = StyleSheet.create({
     recurOptionText: {
         fontSize: 14,
         fontWeight: '700',
+    },
+
+    /* Custom date modal */
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: '#00000080',
+        justifyContent: 'flex-end',
+    },
+    modalCard: {
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderWidth: 1,
+        padding: 24,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    modalSub: {
+        fontSize: 13,
+        fontWeight: '500',
+        marginBottom: 24,
+    },
+    dateRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 24,
+    },
+    dateLabel: {
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 1,
+        marginBottom: 8,
+    },
+    dateInput: {
+        borderWidth: 1,
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 14,
+        fontSize: 18,
+        fontWeight: '700',
+        textAlign: 'center',
+    },
+    modalBtns: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    modalCancelBtn: {
+        flex: 1,
+        paddingVertical: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    modalConfirmBtn: {
+        flex: 1,
+        paddingVertical: 16,
+        borderRadius: 14,
+        alignItems: 'center',
     },
 });

@@ -14,7 +14,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "LifeOS needs FaceID to secure your financial data."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -31,7 +34,28 @@
     },
     "plugins": [
       "expo-router",
-      "expo-quick-actions"
+      "expo-quick-actions",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "PaymentWidget",
+              "label": "LifeOS Widget",
+              "description": "Quick glance at your monthly payments",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "previewImage": "./assets/images/adaptive-icon.png"
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

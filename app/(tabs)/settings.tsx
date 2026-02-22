@@ -2,32 +2,34 @@ import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useRouter } from 'expo-router';
 import {
-  Brain,
-  ChevronRight,
-  CreditCard,
-  Globe,
-  Layers,
-  Lock,
-  LogOut,
-  Moon,
-  Palette,
-  Shield,
-  Sun,
-  Unlock,
-  User,
-  Wallet
+    AlertTriangle,
+    Bell,
+    Brain,
+    ChevronRight,
+    CreditCard,
+    Globe,
+    Layers,
+    Lock,
+    LogOut,
+    Moon,
+    Palette,
+    Shield,
+    Sun,
+    Unlock,
+    User,
+    Wallet
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useThemeColors } from '../../src/store/theme';
 import { translations } from '../../src/store/translations';
@@ -90,7 +92,7 @@ export default function SettingsScreen() {
     <View style={[s.container, { backgroundColor: c.base }]}>
       <StatusBar barStyle={c.statusBarStyle} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
         {/* Header */}
         <Text style={[s.title, { color: c.offWhite }]}>{t.settingsTitle}</Text>
 
@@ -301,17 +303,37 @@ export default function SettingsScreen() {
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 
-          {/* Biometric Lock — Only if hardware supported */}
+        </View>
+
+        {/* Security & Alerts */}
+        <Text style={[s.sectionLabel, { color: c.subtle }]}>
+          {isTR ? 'GÜVENLİK & UYARILAR' : 'SECURITY & ALERTS'}
+        </Text>
+        <View style={[s.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+
+          {/* Biometric Lock */}
           {hasBiometrics && (
             <TouchableOpacity
-              style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
-              onPress={() => {
+              style={s.settingRow}
+              onPress={async () => {
                 tap();
-                toggleBiometric();
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                // If turning ON, authenticate first
+                if (!isBiometricEnabled) {
+                  const result = await LocalAuthentication.authenticateAsync({
+                    promptMessage: isTR ? 'Kilidi Aktifleştir' : 'Enable FaceID',
+                  });
+                  if (result.success) {
+                    toggleBiometric();
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  }
+                } else {
+                  // Turning OFF can be instant or also require auth, keeping it simple for now
+                  toggleBiometric();
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                }
               }}
             >
-              <View style={[s.settingIcon, { backgroundColor: isBiometricEnabled ? c.emerald + '15' : c.red + '15' }]}>
+              <View style={[s.settingIcon, { backgroundColor: isBiometricEnabled ? c.emerald + '20' : c.red + '15' }]}>
                 {isBiometricEnabled ? (
                   <Lock size={18} color={c.emerald} />
                 ) : (
@@ -322,8 +344,8 @@ export default function SettingsScreen() {
                 <Text style={[s.settingText, { color: c.offWhite }]}>
                   {isTR ? 'Uygulama Kilidi' : 'App Lock'}
                 </Text>
-                <Text style={[s.settingValue, { color: c.subtle, fontSize: 11 }]}>
-                  {isTR ? 'FaceID / TouchID ile koru' : 'Protect with FaceID/TouchID'}
+                <Text style={[{ fontSize: 11, fontWeight: '500', marginTop: 1 }, { color: c.subtle }]}>
+                  {isTR ? 'FaceID / TouchID ile koru' : 'Protect with FaceID / TouchID'}
                 </Text>
               </View>
               <View style={[
@@ -337,6 +359,82 @@ export default function SettingsScreen() {
               </View>
             </TouchableOpacity>
           )}
+
+          {/* Notification Alerts */}
+          <TouchableOpacity
+            style={[s.settingRow, { borderTopWidth: hasBiometrics ? 1 : 0, borderTopColor: c.cardBorder + '50' }]}
+            onPress={() => {
+              tap();
+              Alert.alert(
+                isTR ? 'Bildirim İzinleri' : 'Notification Permissions',
+                isTR
+                  ? 'LifeOS, ödeme ve görev hatırlatmaları için bildirim gönderiyor. İzinleri cihaz ayarlarından yönetebilirsin.'
+                  : 'LifeOS sends notifications for payment and task reminders. Manage permissions in your device settings.',
+                [{ text: isTR ? 'Tamam' : 'OK' }]
+              );
+            }}
+          >
+            <View style={[s.settingIcon, { backgroundColor: c.blue + '15' }]}>
+              <Bell size={18} color={c.blue} />
+            </View>
+            <Text style={[s.settingText, { color: c.offWhite }]}>
+              {isTR ? 'Bildirim Ayarları' : 'Notification Settings'}
+            </Text>
+            <ChevronRight size={16} color={c.dim} />
+          </TouchableOpacity>
+
+          {/* Privacy & Data */}
+          <TouchableOpacity
+            style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
+            onPress={() => {
+              tap();
+              Alert.alert(
+                isTR ? 'Gizlilik & Veri' : 'Privacy & Data',
+                isTR
+                  ? 'Tüm verileriniz yalnızca bu cihazda saklanır. Sunucuya hiçbir kişisel bilgi gönderilmez. Verileriniz şifreli ve güvende.'
+                  : 'All your data is stored only on this device. No personal information is sent to any server. Your data is encrypted and safe.',
+                [{ text: isTR ? 'Tamam' : 'OK' }]
+              );
+            }}
+          >
+            <View style={[s.settingIcon, { backgroundColor: c.emerald + '15' }]}>
+              <Shield size={18} color={c.emerald} />
+            </View>
+            <Text style={[s.settingText, { color: c.offWhite }]}>
+              {isTR ? 'Gizlilik & Veri' : 'Privacy & Data'}
+            </Text>
+            <ChevronRight size={16} color={c.dim} />
+          </TouchableOpacity>
+
+          {/* Reset Warning */}
+          <TouchableOpacity
+            style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
+            onPress={() => {
+              tap();
+              Alert.alert(
+                isTR ? '⚠️ Tüm Veriyi Sil' : '⚠️ Clear All Data',
+                isTR
+                  ? 'Bu işlem tüm aboneliklerinizi, görevlerinizi ve tercihlerinizi kalıcı olarak siler. Bu işlem geri alınamaz!'
+                  : 'This will permanently delete all subscriptions, tasks, and preferences. This action cannot be undone!',
+                [
+                  { text: isTR ? 'İptal' : 'Cancel', style: 'cancel' },
+                  {
+                    text: isTR ? 'Sil' : 'Delete',
+                    style: 'destructive',
+                    onPress: () => { tap(); handleSignOut(); }
+                  },
+                ]
+              );
+            }}
+          >
+            <View style={[s.settingIcon, { backgroundColor: c.red + '15' }]}>
+              <AlertTriangle size={18} color={c.red} />
+            </View>
+            <Text style={[s.settingText, { color: c.red }]}>
+              {isTR ? 'Tüm Veriyi Sıfırla' : 'Reset All Data'}
+            </Text>
+            <ChevronRight size={16} color={c.red + '80'} />
+          </TouchableOpacity>
         </View>
 
         {/* Sign Out */}
@@ -358,7 +456,7 @@ export default function SettingsScreen() {
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 64 : 48,
+    paddingTop: Platform.OS === 'ios' ? 60 : 44,
     paddingHorizontal: 20,
   },
   title: {

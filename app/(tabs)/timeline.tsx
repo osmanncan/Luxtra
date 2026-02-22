@@ -194,32 +194,21 @@ export default function TimelineScreen() {
             activeOpacity={0.8}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/add-responsibility' as any); }}
           >
-            <Plus size={20} color="#F1F5F9" strokeWidth={2.5} />
+            <Plus size={22} color="#F1F5F9" strokeWidth={3} />
           </TouchableOpacity>
         </View>
 
-        {/* Search — Pro only */}
-        {isPro ? (
-          <View style={[s.searchWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-            <Search size={16} color={c.dim} />
-            <TextInput
-              style={[s.searchInput, { color: c.offWhite }]}
-              placeholder={t.searchPlaceholder}
-              placeholderTextColor={c.dim}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={[s.searchWrap, { backgroundColor: c.card, borderColor: c.cardBorder, opacity: 0.5 }]}
-            onPress={() => router.push('/modal')}
-            activeOpacity={0.7}
-          >
-            <Search size={16} color={c.dim} />
-            <Text style={[s.searchInput, { color: c.dim }]}>🔒 {isTR ? 'Pro ile ara' : 'Search with Pro'}</Text>
-          </TouchableOpacity>
-        )}
+        {/* Search */}
+        <View style={[s.searchWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+          <Search size={18} color={c.dim} />
+          <TextInput
+            style={[s.searchInput, { color: c.offWhite }]}
+            placeholder={t.searchPlaceholder}
+            placeholderTextColor={c.muted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
 
         {/* Free tier slot counter */}
         {!isPro && (
@@ -249,7 +238,7 @@ export default function TimelineScreen() {
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140 }}
           stickySectionHeadersEnabled={false}
           ListEmptyComponent={
             <View style={[s.empty, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
@@ -269,27 +258,27 @@ export default function TimelineScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 64 : 48 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12 },
+  container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 60 : 44 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12, marginTop: 4 },
   headerLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 4 },
   headerTitle: { fontSize: 22, fontWeight: '700', letterSpacing: -0.3 },
   addBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
 
-  searchWrap: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 14, height: 44, gap: 10, borderWidth: 1, marginHorizontal: 20, marginBottom: 8 },
-  searchInput: { flex: 1, fontSize: 14, fontWeight: '500' },
-  swipeHint: { fontSize: 11, fontWeight: '500', textAlign: 'right', paddingHorizontal: 20, marginBottom: 10 },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingHorizontal: 16, height: 50, gap: 10, borderWidth: 1.5, marginHorizontal: 20, marginBottom: 10 },
+  searchInput: { flex: 1, fontSize: 15, fontWeight: '600' },
+  swipeHint: { fontSize: 11, fontWeight: '500', textAlign: 'right', paddingHorizontal: 20, marginBottom: 10, opacity: 0.6 },
 
   sectionHead: { flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 10, gap: 8 },
-  sectionDot: { width: 8, height: 8, borderRadius: 4 },
-  sectionTitle: { fontSize: 14, fontWeight: '700', flex: 1 },
-  sectionCount: { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  sectionCountText: { fontSize: 11, fontWeight: '700' },
+  sectionDot: { width: 9, height: 9, borderRadius: 5 },
+  sectionTitle: { fontSize: 15, fontWeight: '800', flex: 1, letterSpacing: 0.2 },
+  sectionCount: { width: 26, height: 26, borderRadius: 13, justifyContent: 'center', alignItems: 'center' },
+  sectionCountText: { fontSize: 12, fontWeight: '800' },
 
-  itemCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, borderWidth: 1, gap: 12 },
-  itemIconWrap: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
-  itemTitle: { fontSize: 15, fontWeight: '600' },
-  itemMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
-  itemMeta: { fontSize: 12, fontWeight: '500' },
+  itemCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 16, borderWidth: 1, gap: 12 },
+  itemIconWrap: { width: 42, height: 42, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
+  itemTitle: { fontSize: 16, fontWeight: '700' },
+  itemMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
+  itemMeta: { fontSize: 13, fontWeight: '600' },
   recurBadge: { width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
   recurText: { fontSize: 10, fontWeight: '500', marginTop: 2 },
   kindPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
