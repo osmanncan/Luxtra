@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { ArrowRight, Globe, Lock, Mail, Shield } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     Animated,
     KeyboardAvoidingView,
@@ -25,6 +26,7 @@ export default function LoginScreen() {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(40)).current;
@@ -36,7 +38,7 @@ export default function LoginScreen() {
         ]).start();
     }, []);
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (!email || !password) {
             Alert.alert(
                 language === 'tr' ? 'Hata' : 'Error',
@@ -44,13 +46,28 @@ export default function LoginScreen() {
             );
             return;
         }
-        login('Osmancan', email);
-        router.replace('/(tabs)');
+
+        setLoading(true);
+        const result = await login(email, password);
+        setLoading(false);
+
+        if (result.success) {
+            router.replace('/(tabs)');
+        } else {
+            Alert.alert(
+                language === 'tr' ? 'Giriş Başarısız' : 'Login Failed',
+                result.error
+            );
+        }
     };
 
-    const handleTestLogin = () => {
-        login('Osmancan', 'osmancan@lifeos.app');
-        router.replace('/(tabs)');
+    const handleTestLogin = async () => {
+        setLoading(true);
+        const result = await login('osmancan@lifeos.app', '123456'); // Example test credentials
+        setLoading(false);
+        if (result.success) {
+            router.replace('/(tabs)');
+        }
     };
 
     const toggleLang = () => {
@@ -125,10 +142,20 @@ export default function LoginScreen() {
                         </View>
 
                         {/* Sign In */}
-                        <TouchableOpacity onPress={handleLogin} activeOpacity={0.85}>
-                            <View style={s.signInBtn}>
-                                <Text style={s.signInText}>{t.loginBtn}</Text>
-                                <ArrowRight size={20} color="#0F1419" />
+                        <TouchableOpacity
+                            onPress={handleLogin}
+                            activeOpacity={0.85}
+                            disabled={loading}
+                        >
+                            <View style={[s.signInBtn, loading && { opacity: 0.7 }]}>
+                                {loading ? (
+                                    <ActivityIndicator color="#0F1419" />
+                                ) : (
+                                    <>
+                                        <Text style={s.signInText}>{t.loginBtn}</Text>
+                                        <ArrowRight size={20} color="#0F1419" />
+                                    </>
+                                )}
                             </View>
                         </TouchableOpacity>
 
@@ -142,9 +169,17 @@ export default function LoginScreen() {
                         </View>
 
                         {/* Test User */}
-                        <TouchableOpacity onPress={handleTestLogin} activeOpacity={0.8}>
-                            <View style={s.testBtn}>
-                                <Text style={s.testText}>⚡ {t.testUser}</Text>
+                        <TouchableOpacity
+                            onPress={handleTestLogin}
+                            activeOpacity={0.8}
+                            disabled={loading}
+                        >
+                            <View style={[s.testBtn, loading && { opacity: 0.7 }]}>
+                                {loading ? (
+                                    <ActivityIndicator color="#10B981" />
+                                ) : (
+                                    <Text style={s.testText}>⚡ {t.testUser}</Text>
+                                )}
                             </View>
                         </TouchableOpacity>
                     </Animated.View>

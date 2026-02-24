@@ -222,7 +222,7 @@ export default function SpendingScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <SwipeableRow onDelete={() => handleDelete(item.id, item.name)} deleteColor={c.red}>
+            <SwipeableRow onDelete={() => handleDelete(item.id, item.name)} deleteColor={c.red} backgroundColor={c.base}>
               <SubscriptionItem
                 item={item}
                 isTR={isTR}

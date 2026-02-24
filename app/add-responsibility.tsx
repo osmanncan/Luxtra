@@ -108,8 +108,11 @@ export default function AddResponsibility() {
         const due = new Date();
         due.setDate(due.getDate() + (parseInt(daysDue) || 0));
 
+        const newId = Date.now().toString();
+        const reminderDateValue = reminderType === 'custom' ? getCustomReminderDate()?.toISOString() : undefined;
+
         addTask({
-            id: Date.now().toString(),
+            id: newId,
             title: title.trim(),
             dueDate: due.toISOString(),
             isCompleted: false,
@@ -117,6 +120,8 @@ export default function AddResponsibility() {
             type: 'life',
             isRecurring,
             recurringMonths: isRecurring ? (parseInt(recurringMonths) || 6) : undefined,
+            reminderDays: reminderType === 'days' ? reminderDays : reminderType === 'months' ? reminderMonths * 30 : 1,
+            reminderDate: reminderDateValue,
         });
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -137,19 +142,16 @@ export default function AddResponsibility() {
             remindDate.setHours(9, 0, 0, 0);
         }
 
-        if (Notifications && remindDate && remindDate > new Date()) {
-            try {
-                await Notifications.scheduleNotificationAsync({
-                    content: {
-                        title: isTR ? 'Sorumluluk Hatırlatması 📌' : 'Responsibility Reminder 📌',
-                        body: isTR ? `"${title.trim()}" yaklaşıyor!` : `"${title.trim()}" is coming up!`,
-                    },
-                    trigger: {
-                        type: Notifications.SchedulableTriggerInputTypes.DATE,
-                        date: remindDate,
-                    },
-                });
-            } catch (e) { }
+        // Schedule Notification using NotificationService
+        if (remindDate && remindDate > new Date()) {
+            const { NotificationService } = require('../src/services/notificationService');
+            await NotificationService.scheduleNotification(
+                newId,
+                isTR ? 'Sorumluluk Hatırlatması 📌' : 'Responsibility Reminder 📌',
+                isTR ? `"${title.trim()}" yaklaşıyor!` : `"${title.trim()}" is coming up!`,
+                remindDate,
+                { id: newId, type: 'responsibility' }
+            );
         }
 
         router.back();

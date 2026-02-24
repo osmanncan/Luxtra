@@ -16,7 +16,7 @@ export default function OnboardingScreen() {
     const isTR = language === 'tr';
 
     const handleStart = () => {
-        router.replace('/(tabs)');
+        router.replace('/login');
     };
 
     return (

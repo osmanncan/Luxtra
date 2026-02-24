@@ -4,8 +4,10 @@ import { useRouter } from 'expo-router';
 import {
   AlertTriangle,
   Bell,
+  BellOff,
   Brain,
   ChevronRight,
+  Clock,
   CreditCard,
   Globe,
   Layers,
@@ -13,6 +15,7 @@ import {
   LogOut,
   Moon,
   Palette,
+  Radio,
   Shield,
   Sun,
   Unlock,
@@ -42,6 +45,8 @@ export default function SettingsScreen() {
     subscriptions, tasks, logout, currency, setCurrency,
     monthlyBudget, setMonthlyBudget,
     isBiometricEnabled, toggleBiometric,
+    notificationsEnabled, setNotificationsEnabled,
+    notificationTime, setNotificationTime,
   } = useStore();
   const c = useThemeColors();
   const t = translations[language].settings;
@@ -157,8 +162,22 @@ export default function SettingsScreen() {
           <TouchableOpacity style={s.settingRow} onPress={() => {
             tap();
             const langs: Array<'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar'> = ['en', 'tr', 'es', 'de', 'fr', 'it', 'pt', 'ar'];
-            const idx = langs.indexOf(language);
-            setLanguage(langs[(idx + 1) % langs.length]);
+            const labels: Record<string, string> = {
+              en: 'English', tr: 'Türkçe', es: 'Español', de: 'Deutsch',
+              fr: 'Français', it: 'Italiano', pt: 'Português', ar: 'العربية'
+            };
+
+            Alert.alert(
+              isTR ? 'Dil Seçin' : 'Select Language',
+              '',
+              [
+                ...langs.map(l => ({
+                  text: labels[l],
+                  onPress: () => { setLanguage(l); tap(); }
+                })),
+                { text: isTR ? 'İptal' : 'Cancel', style: 'cancel' }
+              ]
+            );
           }}>
             <View style={[s.settingIcon, { backgroundColor: c.blue + '15' }]}>
               <Globe size={18} color={c.blue} />
@@ -178,7 +197,24 @@ export default function SettingsScreen() {
           </TouchableOpacity>
 
           {/* Currency */}
-          <TouchableOpacity style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]} onPress={cycleCurrency}>
+          <TouchableOpacity
+            style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
+            onPress={() => {
+              tap();
+              const options = Object.keys(CURRENCIES);
+              Alert.alert(
+                isTR ? 'Para Birimi Seçin' : 'Select Currency',
+                '',
+                [
+                  ...options.slice(0, 8).map(currKey => ({
+                    text: `${CURRENCIES[currKey].symbol} ${currKey}`,
+                    onPress: () => { setCurrency(currKey); tap(); }
+                  })),
+                  { text: isTR ? 'Vazgeç' : 'Cancel', style: 'cancel' }
+                ]
+              );
+            }}
+          >
             <View style={[s.settingIcon, { backgroundColor: c.amber + '15' }]}>
               <Wallet size={18} color={c.amber} />
             </View>
@@ -321,7 +357,7 @@ export default function SettingsScreen() {
 
         {/* Security & Alerts */}
         <Text style={[s.sectionLabel, { color: c.subtle }]}>
-          {isTR ? 'GÜVENLİK & UYARILAR' : 'SECURITY & ALERTS'}
+          {t.securityAlerts}
         </Text>
         <View style={[s.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
 
@@ -331,17 +367,15 @@ export default function SettingsScreen() {
               style={s.settingRow}
               onPress={async () => {
                 tap();
-                // If turning ON, authenticate first
                 if (!isBiometricEnabled) {
                   const result = await LocalAuthentication.authenticateAsync({
-                    promptMessage: isTR ? 'Kilidi Aktifleştir' : 'Enable FaceID',
+                    promptMessage: t.appLock,
                   });
                   if (result.success) {
                     toggleBiometric();
                     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   }
                 } else {
-                  // Turning OFF can be instant or also require auth, keeping it simple for now
                   toggleBiometric();
                   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 }
@@ -356,10 +390,10 @@ export default function SettingsScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.settingText, { color: c.offWhite }]}>
-                  {isTR ? 'Uygulama Kilidi' : 'App Lock'}
+                  {t.appLock}
                 </Text>
                 <Text style={[{ fontSize: 11, fontWeight: '500', marginTop: 1 }, { color: c.subtle }]}>
-                  {isTR ? 'FaceID / TouchID ile koru' : 'Protect with FaceID / TouchID'}
+                  {t.appLockDesc}
                 </Text>
               </View>
               <View style={[
@@ -374,26 +408,78 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Notification Alerts */}
+          {/* Global Notifications Toggle */}
           <TouchableOpacity
-            style={[s.settingRow, { borderTopWidth: hasBiometrics ? 1 : 0, borderTopColor: c.cardBorder + '50' }]}
+            style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => {
               tap();
-              Alert.alert(
-                isTR ? 'Bildirim İzinleri' : 'Notification Permissions',
-                isTR
-                  ? 'LifeOS, ödeme ve görev hatırlatmaları için bildirim gönderiyor. İzinleri cihaz ayarlarından yönetebilirsin.'
-                  : 'LifeOS sends notifications for payment and task reminders. Manage permissions in your device settings.',
-                [{ text: isTR ? 'Tamam' : 'OK' }]
-              );
+              setNotificationsEnabled(!notificationsEnabled);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             }}
           >
-            <View style={[s.settingIcon, { backgroundColor: c.blue + '15' }]}>
-              <Bell size={18} color={c.blue} />
+            <View style={[s.settingIcon, { backgroundColor: notificationsEnabled ? c.blue + '15' : c.dim + '15' }]}>
+              {notificationsEnabled ? <Bell size={18} color={c.blue} /> : <BellOff size={18} color={c.dim} />}
             </View>
-            <Text style={[s.settingText, { color: c.offWhite }]}>
-              {isTR ? 'Bildirim Ayarları' : 'Notification Settings'}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.settingText, { color: c.offWhite }]}>
+                {t.notificationsEnabled}
+              </Text>
+              <Text style={[{ fontSize: 11, fontWeight: '500', marginTop: 1 }, { color: c.subtle }]}>
+                {t.notificationsEnabledDesc}
+              </Text>
+            </View>
+            <View style={[
+              s.toggle,
+              {
+                backgroundColor: notificationsEnabled ? c.blue : c.cardBorder,
+                alignItems: notificationsEnabled ? 'flex-end' : 'flex-start',
+              }
+            ]}>
+              <View style={[s.toggleKnob, { backgroundColor: '#fff' }]} />
+            </View>
+          </TouchableOpacity>
+
+          {/* Notification Time */}
+          {notificationsEnabled && (
+            <TouchableOpacity
+              style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
+              onPress={() => {
+                tap();
+                // Simple cycle for now: 08:00 -> 09:00 -> 10:00
+                const times = ['08:00', '09:00', '10:00', '18:00', '20:00'];
+                const idx = times.indexOf(notificationTime);
+                setNotificationTime(times[(idx + 1) % times.length]);
+              }}
+            >
+              <View style={[s.settingIcon, { backgroundColor: c.amber + '15' }]}>
+                <Clock size={18} color={c.amber} />
+              </View>
+              <Text style={[s.settingText, { color: c.offWhite }]}>{t.reminderTime}</Text>
+              <Text style={[s.settingValue, { color: c.muted }]}>{notificationTime}</Text>
+              <ChevronRight size={16} color={c.dim} />
+            </TouchableOpacity>
+          )}
+
+          {/* Test Notification */}
+          <TouchableOpacity
+            style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
+            onPress={async () => {
+              tap();
+              const { NotificationService } = require('../../src/services/notificationService');
+              await NotificationService.scheduleNotification(
+                'test-notif',
+                'LifeOS ⚡',
+                isTR ? 'Bu bir test bildirimidir!' : 'This is a test notification!',
+                new Date(Date.now() + 2000), // 2 seconds later
+                { type: 'test' }
+              );
+              Alert.alert(isTR ? 'Başarılı' : 'Success', t.testNotifySuccess);
+            }}
+          >
+            <View style={[s.settingIcon, { backgroundColor: c.emerald + '15' }]}>
+              <Radio size={18} color={c.emerald} />
+            </View>
+            <Text style={[s.settingText, { color: c.offWhite }]}>{t.testNotification}</Text>
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 
@@ -403,7 +489,7 @@ export default function SettingsScreen() {
             onPress={() => {
               tap();
               Alert.alert(
-                isTR ? 'Gizlilik & Veri' : 'Privacy & Data',
+                t.privacyData,
                 isTR
                   ? 'Tüm verileriniz yalnızca bu cihazda saklanır. Sunucuya hiçbir kişisel bilgi gönderilmez. Verileriniz şifreli ve güvende.'
                   : 'All your data is stored only on this device. No personal information is sent to any server. Your data is encrypted and safe.',
@@ -411,12 +497,15 @@ export default function SettingsScreen() {
               );
             }}
           >
-            <View style={[s.settingIcon, { backgroundColor: c.emerald + '15' }]}>
-              <Shield size={18} color={c.emerald} />
+            <View style={[s.settingIcon, { backgroundColor: c.blue + '15' }]}>
+              <Shield size={18} color={c.blue} />
             </View>
-            <Text style={[s.settingText, { color: c.offWhite }]}>
-              {isTR ? 'Gizlilik & Veri' : 'Privacy & Data'}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.settingText, { color: c.offWhite }]}>{t.privacyData}</Text>
+              <Text style={[{ fontSize: 11, fontWeight: '500', marginTop: 1 }, { color: c.subtle }]}>
+                {t.privacyDataDesc}
+              </Text>
+            </View>
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 
@@ -426,10 +515,8 @@ export default function SettingsScreen() {
             onPress={() => {
               tap();
               Alert.alert(
-                isTR ? '⚠️ Tüm Veriyi Sil' : '⚠️ Clear All Data',
-                isTR
-                  ? 'Bu işlem tüm aboneliklerinizi, görevlerinizi ve tercihlerinizi kalıcı olarak siler. Bu işlem geri alınamaz!'
-                  : 'This will permanently delete all subscriptions, tasks, and preferences. This action cannot be undone!',
+                isTR ? '⚠️ ' + t.resetData : '⚠️ ' + t.resetData,
+                t.resetDataConfirm,
                 [
                   { text: isTR ? 'İptal' : 'Cancel', style: 'cancel' },
                   {
@@ -445,7 +532,7 @@ export default function SettingsScreen() {
               <AlertTriangle size={18} color={c.red} />
             </View>
             <Text style={[s.settingText, { color: c.red }]}>
-              {isTR ? 'Tüm Veriyi Sıfırla' : 'Reset All Data'}
+              {t.resetData}
             </Text>
             <ChevronRight size={16} color={c.red + '80'} />
           </TouchableOpacity>

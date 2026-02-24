@@ -53,6 +53,7 @@ export interface Subscription {
   isPaid?: boolean;
   paidDate?: string;
   reminderDays?: number; // default: 1
+  reminderDate?: string; // custom notification date
 }
 
 export interface User {
@@ -72,6 +73,7 @@ export interface Task {
   isRecurring?: boolean;
   recurringMonths?: number; // repeat every X months
   reminderDays?: number; // default: 1
+  reminderDate?: string; // custom notification date
 }
 
 export type ThemeMode = 'dark' | 'light';
@@ -82,12 +84,13 @@ interface AppState {
 
   // Auth
   user: User | null;
-  login: (name: string, email: string) => void;
-  register: (name: string, email: string) => void;
-  logout: () => void;
+  setUser: (user: User | null) => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 
   // Profile
-  updateProfile: (updates: Partial<User>) => void;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 
   // Settings
   language: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar';
@@ -109,8 +112,10 @@ interface AppState {
   toggleBiometric: () => void;
 
   // Pro Membership
-  upgradeToPro: () => void;
+  upgradeToPro: (pkg?: any) => Promise<boolean>;
   cancelPro: () => void;
+  refreshProStatus: () => Promise<void>;
+  restorePurchases: () => Promise<boolean>;
 
   // AI Insights
   aiInsight: string | null;
@@ -131,12 +136,18 @@ interface AppState {
   customCategories: Record<string, CategoryConfig>;
   addCustomCategory: (name: string, config: CategoryConfig) => void;
   removeCustomCategory: (name: string) => void;
+
+  // Notification Settings
+  notificationsEnabled: boolean;
+  setNotificationsEnabled: (enabled: boolean) => void;
+  notificationTime: string; // HH:mm format
+  setNotificationTime: (time: string) => void;
+  syncData: () => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
-      user: { name: 'Kullanıcı', email: '', isPro: false },
       language: 'tr',
       currency: 'TRY',
       theme: 'dark',
@@ -145,20 +156,140 @@ export const useStore = create<AppState>()(
       aiInsight: null,
       customCategories: {},
       aiLoading: false,
+      notificationsEnabled: true,
+      notificationTime: '09:00',
 
-      login: (name, email) => set({
-        user: { name, email, isPro: false }
-      }),
-      register: (name, email) => set({
-        user: { name, email, isPro: false }
-      }),
-      logout: () => set({ user: { name: 'Kullanıcı', email: '', isPro: false } }),
+      user: null, // Start with null
+      setUser: (user) => set({ user }),
 
-      updateProfile: (updates) => set((state) => ({
-        user: state.user ? { ...state.user, ...updates } : null,
-      })),
+      login: async (email, password) => {
+        const { supabase } = await import('../services/supabase');
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { success: false, error: error.message };
 
-      setLanguage: (language) => set({ language }),
+        // Fetch profile or metadata if needed
+        const userObj: User = {
+          name: data.user.user_metadata.full_name || 'Kullanıcı',
+          email: data.user.email!,
+          isPro: false // This will be checked by RevenueCat separately
+        };
+        set({ user: userObj });
+
+        // Use getState to call syncData after login
+        await useStore.getState().syncData();
+
+        return { success: true };
+      },
+
+      syncData: async () => {
+        const { supabase } = await import('../services/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        try {
+          const [subsRes, tasksRes] = await Promise.all([
+            supabase.from('subscriptions').select('*').eq('user_id', session.user.id),
+            supabase.from('tasks').select('*').eq('user_id', session.user.id)
+          ]);
+
+          if (subsRes.data) {
+            set({
+              subscriptions: subsRes.data.map(s => ({
+                id: s.id,
+                name: s.name,
+                amount: s.amount,
+                currency: s.currency,
+                billingCycle: s.billing_cycle,
+                nextBillingDate: s.next_billing_date,
+                category: s.category,
+                icon: s.icon,
+                isPaid: s.is_paid,
+                paidDate: s.paid_date,
+                reminderDays: s.reminder_days,
+                reminderDate: s.reminder_date
+              }))
+            });
+          }
+
+          if (tasksRes.data) {
+            set({
+              tasks: tasksRes.data.map(t => ({
+                id: t.id,
+                title: t.title,
+                dueDate: t.due_date,
+                isCompleted: t.is_completed,
+                priority: t.priority,
+                type: 'life',
+                isRecurring: t.is_recurring,
+                recurringMonths: t.recurring_months,
+                reminderDays: t.reminder_days,
+                reminderDate: t.reminder_date
+              }))
+            });
+          }
+        } catch (error) {
+          console.error('Error syncing data:', error);
+        }
+      },
+
+      register: async (name, email, password) => {
+        const { supabase } = await import('../services/supabase');
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+          },
+        });
+        if (error) return { success: false, error: error.message };
+
+        const userObj: User = {
+          name,
+          email,
+          isPro: false
+        };
+        set({ user: userObj });
+        return { success: true };
+      },
+
+      logout: async () => {
+        const { supabase } = await import('../services/supabase');
+        await supabase.auth.signOut();
+        set({ user: null });
+      },
+
+      updateProfile: async (updates) => {
+        const { supabase } = await import('../services/supabase');
+        const { error } = await supabase.auth.updateUser({
+          data: { full_name: updates.name },
+        });
+        if (!error) {
+          set((state) => ({
+            user: state.user ? { ...state.user, ...updates } : null,
+          }));
+        }
+      },
+
+      setLanguage: (lang) => {
+        const currencyMap: Record<string, string> = {
+          en: 'USD',
+          tr: 'TRY',
+          es: 'EUR',
+          de: 'EUR',
+          fr: 'EUR',
+          it: 'EUR',
+          pt: 'EUR',
+          ar: 'AED',
+        };
+        const newCurrency = currencyMap[lang] || 'USD';
+        set({ language: lang, currency: newCurrency });
+
+        if (Platform.OS === 'android') {
+          import('../services/widgetService').then(mod => {
+            mod.updateAndroidWidget(useStore.getState().subscriptions, newCurrency);
+          });
+        }
+      },
       setCurrency: (currency) => set((state) => {
         if (Platform.OS === 'android') {
           import('../services/widgetService').then(mod => {
@@ -179,12 +310,33 @@ export const useStore = create<AppState>()(
       toggleBiometric: () => set((state) => ({ isBiometricEnabled: !state.isBiometricEnabled })),
 
       // Pro Membership
-      upgradeToPro: () => set((state) => ({
-        user: state.user ? { ...state.user, isPro: true } : null,
-      })),
+      upgradeToPro: async (pkg) => {
+        const { PurchaseService } = await import('../services/purchaseService');
+        if (pkg) {
+          const success = await PurchaseService.purchasePackage(pkg);
+          if (success) {
+            set((state) => ({ user: state.user ? { ...state.user, isPro: true } : null }));
+          }
+          return success;
+        }
+        // Fallback or Test
+        set((state) => ({ user: state.user ? { ...state.user, isPro: true } : null }));
+        return true;
+      },
       cancelPro: () => set((state) => ({
         user: state.user ? { ...state.user, isPro: false } : null,
       })),
+      refreshProStatus: async () => {
+        const { PurchaseService } = await import('../services/purchaseService');
+        const isPro = await PurchaseService.checkProStatus();
+        set((state) => ({ user: state.user ? { ...state.user, isPro } : null }));
+      },
+      restorePurchases: async () => {
+        const { PurchaseService } = await import('../services/purchaseService');
+        const isPro = await PurchaseService.restorePurchases();
+        set((state) => ({ user: state.user ? { ...state.user, isPro } : null }));
+        return isPro;
+      },
 
       // AI Insights
       setAiInsight: (insight) => set({ aiInsight: insight }),
@@ -259,7 +411,8 @@ export const useStore = create<AppState>()(
         },
       ],
 
-      addSubscription: (sub) =>
+      addSubscription: async (sub) => {
+        // First update local state for better UX
         set((state) => {
           const newSubs = [...state.subscriptions, sub];
           if (Platform.OS === 'android') {
@@ -268,8 +421,41 @@ export const useStore = create<AppState>()(
             });
           }
           return { subscriptions: newSubs };
-        }),
-      removeSubscription: (id) =>
+        });
+
+        const { supabase } = await import('../services/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          const { error } = await supabase.from('subscriptions').insert({
+            id: sub.id,
+            user_id: session.user.id,
+            name: sub.name,
+            amount: sub.amount,
+            currency: sub.currency,
+            billing_cycle: sub.billingCycle,
+            next_billing_date: sub.nextBillingDate,
+            category: sub.category,
+            icon: sub.icon,
+            is_paid: sub.isPaid,
+            reminder_days: sub.reminderDays,
+            reminder_date: sub.reminderDate
+          });
+
+          if (error) {
+            console.error('Supabase Subscription Insert Error:', error);
+            // Optionally: handle rollback if insert fails
+          }
+        }
+      },
+      removeSubscription: async (id) => {
+        const { supabase } = await import('../services/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          await supabase.from('subscriptions').delete().eq('id', id);
+        }
+
         set((state) => {
           const newSubs = state.subscriptions.filter((s) => s.id !== id);
           if (Platform.OS === 'android') {
@@ -278,8 +464,26 @@ export const useStore = create<AppState>()(
             });
           }
           return { subscriptions: newSubs };
-        }),
-      updateSubscription: (id, updates) =>
+        });
+      },
+      updateSubscription: async (id, updates) => {
+        const { supabase } = await import('../services/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          const dbUpdates: any = {};
+          if (updates.name !== undefined) dbUpdates.name = updates.name;
+          if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
+          if (updates.currency !== undefined) dbUpdates.currency = updates.currency;
+          if (updates.billingCycle !== undefined) dbUpdates.billing_cycle = updates.billingCycle;
+          if (updates.nextBillingDate !== undefined) dbUpdates.next_billing_date = updates.nextBillingDate;
+          if (updates.category !== undefined) dbUpdates.category = updates.category;
+          if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
+          if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
+
+          await supabase.from('subscriptions').update(dbUpdates).eq('id', id);
+        }
+
         set((state) => {
           const newSubs = state.subscriptions.map((s) => s.id === id ? { ...s, ...updates } : s);
           if (Platform.OS === 'android') {
@@ -288,28 +492,85 @@ export const useStore = create<AppState>()(
             });
           }
           return { subscriptions: newSubs };
-        }),
-      markSubscriptionPaid: (id) =>
+        });
+      },
+      markSubscriptionPaid: async (id) => {
+        const sub = useStore.getState().subscriptions.find(s => s.id === id);
+        if (!sub) return;
+
+        const { supabase } = await import('../services/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        const newState = !sub.isPaid;
+        if (session) {
+          await supabase.from('subscriptions').update({ is_paid: newState }).eq('id', id);
+        }
+
         set((state) => ({
           subscriptions: state.subscriptions.map((s) =>
-            s.id === id ? { ...s, isPaid: !s.isPaid, paidDate: !s.isPaid ? new Date().toISOString() : undefined } : s
+            s.id === id ? { ...s, isPaid: newState, paidDate: newState ? new Date().toISOString() : undefined } : s
           ),
-        })),
+        }));
+      },
 
-      addTask: (task) =>
-        set((state) => ({ tasks: [...state.tasks, task] })),
+      addTask: async (task) => {
+        // First update local state
+        set((state) => ({ tasks: [...state.tasks, task] }));
 
-      toggleTask: (id) =>
+        const { supabase } = await import('../services/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          const { error } = await supabase.from('tasks').insert({
+            id: task.id,
+            user_id: session.user.id,
+            title: task.title,
+            due_date: task.dueDate,
+            is_completed: task.isCompleted,
+            priority: task.priority,
+            is_recurring: task.isRecurring,
+            recurring_months: task.recurringMonths,
+            reminder_days: task.reminderDays,
+            reminder_date: task.reminderDate
+          });
+
+          if (error) {
+            console.error('Supabase Task Insert Error:', error);
+          }
+        }
+      },
+
+      toggleTask: async (id) => {
+        const task = useStore.getState().tasks.find(t => t.id === id);
+        if (!task) return;
+
+        const { supabase } = await import('../services/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        const newState = !task.isCompleted;
+        if (session) {
+          await supabase.from('tasks').update({ is_completed: newState }).eq('id', id);
+        }
+
         set((state) => ({
           tasks: state.tasks.map((t) =>
-            t.id === id ? { ...t, isCompleted: !t.isCompleted } : t,
+            t.id === id ? { ...t, isCompleted: newState } : t,
           ),
-        })),
+        }));
+      },
 
-      deleteTask: (id) =>
+      deleteTask: async (id) => {
+        const { supabase } = await import('../services/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          await supabase.from('tasks').delete().eq('id', id);
+        }
+
         set((state) => ({
           tasks: state.tasks.filter((t) => t.id !== id),
-        })),
+        }));
+      },
 
       // Custom Categories
       addCustomCategory: (name, config) => set((state) => ({
@@ -320,6 +581,9 @@ export const useStore = create<AppState>()(
         delete newCats[name];
         return { customCategories: newCats };
       }),
+
+      setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
+      setNotificationTime: (notificationTime) => set({ notificationTime }),
     }),
     {
       name: 'lifeos-storage',
@@ -332,6 +596,8 @@ export const useStore = create<AppState>()(
         currency: state.currency,
         theme: state.theme,
         monthlyBudget: state.monthlyBudget,
+        notificationsEnabled: state.notificationsEnabled,
+        notificationTime: state.notificationTime,
       }),
     }
   )

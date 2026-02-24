@@ -111,7 +111,7 @@ export default function TimelineScreen() {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <SwipeableRow onDelete={() => handleDelete(item)} deleteColor={c.red}>
+    <SwipeableRow onDelete={() => handleDelete(item)} deleteColor={c.red} backgroundColor={c.base}>
       <TimelineItem
         item={item}
         isTR={isTR}
@@ -218,20 +218,58 @@ export default function TimelineScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 60 : 44 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12, marginTop: 4 },
-  headerLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 4 },
-  headerTitle: { fontSize: 22, fontWeight: '700', letterSpacing: -0.3 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16, marginTop: 4 },
+  headerLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 },
+  headerTitle: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
   addBtn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
 
-  searchWrap: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingHorizontal: 16, height: 50, gap: 10, borderWidth: 1.5, marginHorizontal: 20, marginBottom: 10 },
-  searchInput: { flex: 1, fontSize: 15, fontWeight: '600' },
-  swipeHint: { fontSize: 11, fontWeight: '500', textAlign: 'right', paddingHorizontal: 20, marginBottom: 10, opacity: 0.6 },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 52,
+    gap: 12,
+    borderWidth: 1,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    letterSpacing: -0.2
+  },
+  swipeHint: { fontSize: 11, fontWeight: '600', textAlign: 'right', paddingHorizontal: 20, marginBottom: 4, opacity: 0.4 },
 
-  sectionHead: { flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 10, gap: 8 },
-  sectionDot: { width: 9, height: 9, borderRadius: 5 },
-  sectionTitle: { fontSize: 15, fontWeight: '800', flex: 1, letterSpacing: 0.2 },
-  sectionCount: { width: 26, height: 26, borderRadius: 13, justifyContent: 'center', alignItems: 'center' },
-  sectionCountText: { fontSize: 12, fontWeight: '800' },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 12,
+    gap: 10,
+    paddingHorizontal: 2
+  },
+  sectionDot: { width: 10, height: 10, borderRadius: 5 },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    flex: 1,
+    letterSpacing: -0.3
+  },
+  sectionCount: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  sectionCountText: { fontSize: 12, fontWeight: '700' },
 
   itemCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 16, borderWidth: 1, gap: 12 },
   itemIconWrap: { width: 42, height: 42, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },

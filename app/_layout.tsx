@@ -64,6 +64,32 @@ export default function RootLayout() {
         params: { href: '/add-responsibility' },
       },
     ]);
+
+    // Request notification permissions
+    import('../src/services/notificationService').then(({ NotificationService }) => {
+      NotificationService.requestPermissions();
+    });
+
+    // Initialize RevenueCat
+    import('../src/services/purchaseService').then(({ PurchaseService }) => {
+      PurchaseService.initialize();
+    });
+
+    // Supabase Auth Listener
+    import('../src/services/supabase').then(({ supabase }) => {
+      supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          useStore.getState().setUser({
+            name: session.user.user_metadata.full_name || 'Kullanıcı',
+            email: session.user.email!,
+            isPro: false
+          });
+          useStore.getState().syncData();
+        } else {
+          useStore.getState().setUser(null);
+        }
+      });
+    });
   }, []);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
@@ -94,8 +120,17 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isReady) return;
-    // Otomatik yönlendirme kaldırıldı, uygulama direkt (tabs) içinden başlar.
-  }, [isReady]);
+
+    const inAuthGroup = segments[0] === '(tabs)';
+
+    if (!user && inAuthGroup) {
+      // Giriş yapmamışsa Onboarding/Login ekranına gönder
+      router.replace('/onboarding');
+    } else if (user && !inAuthGroup) {
+      // Giriş yapmışsa ama login ekranındaysa tabs'e gönder
+      router.replace('/(tabs)');
+    }
+  }, [isReady, user, segments]);
 
   if (!loaded) {
     return null;

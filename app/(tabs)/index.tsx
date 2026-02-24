@@ -65,7 +65,7 @@ export default function OverviewScreen() {
   ]
     .filter(item => {
       const diff = Math.ceil((new Date(item.date).getTime() - now.getTime()) / 86400000);
-      return diff >= -1 && diff <= 7;
+      return diff >= -1 && diff <= 30;
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 5);

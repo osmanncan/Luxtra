@@ -17,6 +17,8 @@ export default function PaywallScreen() {
   const isPro = user?.isPro;
 
   const [plan, setPlan] = useState<'monthly' | 'yearly'>('monthly');
+  const [packages, setPackages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -27,16 +29,40 @@ export default function PaywallScreen() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 50, friction: 10, useNativeDriver: true }),
     ]).start();
+
+    // Fetch real packages from RevenueCat
+    const loadOfferings = async () => {
+      const { PurchaseService } = await import('../src/services/purchaseService');
+      const pkgs = await PurchaseService.getPackages();
+      setPackages(pkgs);
+      setLoading(false);
+    };
+    loadOfferings();
   }, []);
 
-  const handlePurchase = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    upgradeToPro();
-    Alert.alert(
-      '🎉',
-      isTR ? 'Pro üyeliğiniz aktif edildi!' : 'Pro membership activated!',
-      [{ text: 'OK', onPress: () => router.back() }]
-    );
+  const handlePurchase = async () => {
+    try {
+      setLoading(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      const selectedPkg = packages.find(p =>
+        plan === 'monthly' ? p.packageType === 'MONTHLY' : p.packageType === 'ANNUAL'
+      );
+
+      const success = await upgradeToPro(selectedPkg);
+
+      if (success) {
+        Alert.alert(
+          '🎉',
+          isTR ? 'Pro üyeliğiniz aktif edildi!' : 'Pro membership activated!',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -54,8 +80,23 @@ export default function PaywallScreen() {
     ]);
   };
 
-  const monthlyPrice = isTR ? '₺149.99' : '$4.99';
-  const yearlyPrice = isTR ? '₺1,499.99' : '$49.99';
+  const handleRestore = async () => {
+    const { PurchaseService } = await import('../src/services/purchaseService');
+    const success = await PurchaseService.restorePurchases();
+    if (success) {
+      upgradeToPro(); // Update local state
+      Alert.alert(isTR ? 'Başarılı' : 'Success', isTR ? 'Satın alımlar geri yüklendi!' : 'Purchases restored!');
+      router.back();
+    } else {
+      Alert.alert(isTR ? 'Bilgi' : 'Info', isTR ? 'Aktif bir abonelik bulunamadı.' : 'No active subscription found.');
+    }
+  };
+
+  const monthlyPkg = packages.find(p => p.packageType === 'MONTHLY');
+  const yearlyPkg = packages.find(p => p.packageType === 'ANNUAL');
+
+  const monthlyPrice = monthlyPkg?.product.priceString || (isTR ? '₺149.99' : '$4.99');
+  const yearlyPrice = yearlyPkg?.product.priceString || (isTR ? '₺1,499.99' : '$49.99');
   const yearlySaving = isTR ? '%16 tasarruf' : 'Save 16%';
 
   if (isPro) {
@@ -265,15 +306,33 @@ export default function PaywallScreen() {
           {/* ── CTA ── */}
           <View style={s.ctaSection}>
             <TouchableOpacity
-              style={[s.ctaBtn, { backgroundColor: c.emerald }]}
+              style={[s.ctaBtn, { backgroundColor: c.emerald, opacity: loading ? 0.7 : 1 }]}
               onPress={handlePurchase}
               activeOpacity={0.85}
+              disabled={loading}
             >
-              <Crown size={18} color="#0F1419" />
-              <Text style={s.ctaBtnText}>
-                {isTR ? 'Pro\'ya Geç' : 'Upgrade to Pro'}
+              {loading ? (
+                <Text style={s.ctaBtnText}>...</Text>
+              ) : (
+                <>
+                  <Crown size={18} color="#0F1419" />
+                  <Text style={s.ctaBtnText}>
+                    {isTR ? 'Pro\'ya Geç' : 'Upgrade to Pro'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{ marginTop: 16 }}
+              onPress={handleRestore}
+              disabled={loading}
+            >
+              <Text style={{ color: c.subtle, fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' }}>
+                {isTR ? 'Satın Alımları Geri Yükle' : 'Restore Purchases'}
               </Text>
             </TouchableOpacity>
+
             <Text style={[s.ctaNote, { color: c.dim }]}>
               {isTR
                 ? 'İstediğin zaman iptal edebilirsin. Gizli ücret yok.'

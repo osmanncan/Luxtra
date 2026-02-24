@@ -1,7 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
     ArrowLeft,
+    Bell,
     Calendar,
+    CalendarDays,
     Check,
     DollarSign,
     Repeat,
@@ -21,6 +23,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { CustomDatePickerModal } from '../../src/components/shared/CustomDatePickerModal';
 import { FormField } from '../../src/components/shared/FormField';
 import { HeroCard } from '../../src/components/shared/HeroCard';
 import { useThemeColors } from '../../src/store/theme';
@@ -47,6 +50,40 @@ export default function SubscriptionDetails() {
     const [category, setCategory] = useState(sub?.category || 'General');
     const [cycle, setCycle] = useState<'monthly' | 'yearly'>(sub?.billingCycle || 'monthly');
     const [day, setDay] = useState(sub ? new Date(sub.nextBillingDate).getDate().toString() : '');
+
+    // Reminder state
+    const [reminderType, setReminderType] = useState<'days' | 'months' | 'custom'>(
+        sub?.reminderDate ? 'custom' : (sub?.reminderDays && sub.reminderDays >= 30 ? 'months' : 'days')
+    );
+    const [reminderDays, setReminderDays] = useState(sub?.reminderDays && sub.reminderDays < 30 ? sub.reminderDays : 1);
+    const [reminderMonths, setReminderMonths] = useState(sub?.reminderDays && sub.reminderDays >= 30 ? Math.floor(sub.reminderDays / 30) : 1);
+
+    const [showCustomDate, setShowCustomDate] = useState(false);
+    const [customDay, setCustomDay] = useState(sub?.reminderDate ? new Date(sub.reminderDate).getDate().toString() : '');
+    const [customMonth, setCustomMonth] = useState(sub?.reminderDate ? (new Date(sub.reminderDate).getMonth() + 1).toString() : '');
+    const [customYear, setCustomYear] = useState(sub?.reminderDate ? new Date(sub.reminderDate).getFullYear().toString() : new Date().getFullYear().toString());
+
+    const getCustomReminderDate = (): Date | null => {
+        const d_ = parseInt(customDay);
+        const m_ = parseInt(customMonth) - 1;
+        const y_ = parseInt(customYear);
+        if (isNaN(d_) || isNaN(m_) || isNaN(y_)) return null;
+        const date = new Date(y_, m_, d_);
+        if (isNaN(date.getTime())) return null;
+        return date;
+    };
+
+    const getReminderLabel = (): string => {
+        if (reminderType === 'days') {
+            return isTR ? `${reminderDays} gün önce` : `${reminderDays} day(s) before`;
+        }
+        if (reminderType === 'months') {
+            return isTR ? `${reminderMonths} ay önce` : `${reminderMonths} month(s) before`;
+        }
+        const d_ = getCustomReminderDate();
+        if (!d_) return isTR ? 'Tarih seç' : 'Pick date';
+        return d_.toLocaleDateString(isTR ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
 
     const allCategories = { ...SUB_CATEGORIES, ...customCategories };
     const checkScaleAnim = useRef(new Animated.Value(sub?.isPaid ? 1 : 0)).current;
@@ -81,7 +118,9 @@ export default function SubscriptionDetails() {
                 {
                     text: isTR ? 'Sil' : 'Delete',
                     style: 'destructive',
-                    onPress: () => {
+                    onPress: async () => {
+                        const { NotificationService } = require('../../src/services/notificationService');
+                        await NotificationService.cancelNotification(sub.id);
                         removeSubscription(sub.id);
                         router.back();
                     }
@@ -100,6 +139,9 @@ export default function SubscriptionDetails() {
         let nextDate = new Date(today.getFullYear(), today.getMonth(), parseInt(day));
         if (nextDate < today) nextDate.setMonth(nextDate.getMonth() + 1);
 
+        const reminderDateValue = reminderType === 'custom' ? getCustomReminderDate()?.toISOString() : undefined;
+        const calculatedReminderDays = reminderType === 'days' ? reminderDays : reminderType === 'months' ? reminderMonths * 30 : 1;
+
         updateSubscription(sub.id, {
             name: name.trim(),
             amount: parseFloat(amount) || 0,
@@ -107,7 +149,43 @@ export default function SubscriptionDetails() {
             category,
             billingCycle: cycle,
             nextBillingDate: nextDate.toISOString(),
+            reminderDate: reminderDateValue,
+            reminderDays: calculatedReminderDays,
         });
+
+        // Reschedule Notification if not paid
+        if (!sub.isPaid) {
+            const { NotificationService } = require('../../src/services/notificationService');
+            let remindDate: Date | null = null;
+            if (reminderType === 'days') {
+                remindDate = new Date(nextDate);
+                remindDate.setDate(remindDate.getDate() - reminderDays);
+            } else if (reminderType === 'months') {
+                remindDate = new Date(nextDate);
+                remindDate.setMonth(remindDate.getMonth() - reminderMonths);
+            } else if (reminderType === 'custom') {
+                remindDate = getCustomReminderDate();
+            }
+
+            if (remindDate) {
+                remindDate.setHours(9, 0, 0, 0);
+            }
+
+            if (remindDate && remindDate > new Date()) {
+                NotificationService.scheduleNotification(
+                    sub.id,
+                    isTR ? 'Ödeme Hatırlatması 💸' : 'Payment Reminder 💸',
+                    isTR
+                        ? `${name.trim()} (${curr.symbol}${amount}) yakında ödenecek!`
+                        : `${name.trim()} (${curr.symbol}${amount}) is due soon!`,
+                    remindDate,
+                    { id: sub.id, type: 'subscription' }
+                );
+            } else {
+                NotificationService.cancelNotification(sub.id);
+            }
+        }
+
         setIsEditing(false);
     };
 
@@ -232,6 +310,78 @@ export default function SubscriptionDetails() {
                             </View>
 
                             <View style={s.field}>
+                                <Text style={[s.label, { color: c.subtle }]}>{isTR ? 'HATIRLATMA' : 'REMINDER'}</Text>
+                                <View style={[s.reminderTypeTabs, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+                                    {(['days', 'months', 'custom'] as const).map(type => (
+                                        <TouchableOpacity
+                                            key={type}
+                                            style={[s.reminderTypeTab, {
+                                                backgroundColor: reminderType === type ? c.emerald + '20' : 'transparent',
+                                                borderColor: reminderType === type ? c.emerald : 'transparent',
+                                            }]}
+                                            onPress={() => {
+                                                setReminderType(type);
+                                                if (type === 'custom') setShowCustomDate(true);
+                                            }}
+                                        >
+                                            <Text style={[s.reminderTypeLabel, { color: reminderType === type ? c.emerald : c.subtle }]}>
+                                                {type === 'days' ? (isTR ? 'Gün' : 'Days') : type === 'months' ? (isTR ? 'Ay' : 'Months') : (isTR ? 'Özel' : 'Custom')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+
+                                {reminderType === 'days' && (
+                                    <View style={s.cycleRow}>
+                                        {[1, 2, 3, 5, 7].map((days) => (
+                                            <TouchableOpacity
+                                                key={days}
+                                                onPress={() => setReminderDays(days)}
+                                                style={[s.cycleBtn, { backgroundColor: c.card, borderColor: reminderDays === days ? c.emerald + '30' : c.cardBorder, minWidth: 60 }]}
+                                            >
+                                                <Bell size={12} color={reminderDays === days ? c.emerald : c.dim} />
+                                                <Text style={[s.cycleBtnText, { color: reminderDays === days ? c.emerald : c.subtle, fontSize: 11 }]}>
+                                                    {isTR ? (days === 7 ? '1 Hf' : `${days} G`) : (days === 7 ? '1 W' : `${days} D`)}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
+
+                                {reminderType === 'months' && (
+                                    <View style={s.cycleRow}>
+                                        {[1, 2, 3].map((m) => (
+                                            <TouchableOpacity
+                                                key={m}
+                                                onPress={() => setReminderMonths(m)}
+                                                style={[s.cycleBtn, { backgroundColor: c.card, borderColor: reminderMonths === m ? c.emerald + '30' : c.cardBorder }]}
+                                            >
+                                                <Bell size={12} color={reminderMonths === m ? c.emerald : c.dim} />
+                                                <Text style={[s.cycleBtnText, { color: reminderMonths === m ? c.emerald : c.subtle }]}>
+                                                    {m} {isTR ? 'Ay' : 'Mo'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
+
+                                {reminderType === 'custom' && (
+                                    <TouchableOpacity
+                                        style={[s.customDateBtn, { backgroundColor: c.card, borderColor: c.emerald + '40' }]}
+                                        onPress={() => setShowCustomDate(true)}
+                                    >
+                                        <CalendarDays size={18} color={c.emerald} />
+                                        <Text style={[s.customDateLabel, { color: c.offWhite }]}>
+                                            {getReminderLabel()}
+                                        </Text>
+                                        <Text style={{ fontSize: 12, color: c.emerald, fontWeight: '600' }}>
+                                            {isTR ? 'Değiştir' : 'Change'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+
+                            <View style={s.field}>
                                 <Text style={[s.label, { color: c.subtle }]}>{t.categoryLabel.toUpperCase()}</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 4 }}>
                                     {Object.keys(allCategories).map((cat_key) => {
@@ -268,6 +418,19 @@ export default function SubscriptionDetails() {
                             </View>
 
                             <View style={s.field}>
+                                <Text style={[s.label, { color: c.subtle }]}>{isTR ? 'HATIRLATMA' : 'REMINDER'}</Text>
+                                <View style={[s.displayField, { backgroundColor: c.card, borderColor: c.cardBorder, flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
+                                    <Bell size={16} color={c.dim} />
+                                    <Text style={[s.value, { color: c.offWhite }]}>
+                                        {sub.reminderDate
+                                            ? new Date(sub.reminderDate).toLocaleDateString(isTR ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+                                            : isTR ? `${sub.reminderDays || 1} gün önce` : `${sub.reminderDays || 1} day(s) before`
+                                        }
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <View style={s.field}>
                                 <Text style={[s.label, { color: c.subtle }]}>{t.descriptionLabel.toUpperCase()}</Text>
                                 <View style={[s.displayField, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                                     <Text style={[s.value, { color: c.muted, fontSize: 14 }]}>
@@ -297,6 +460,16 @@ export default function SubscriptionDetails() {
                     )}
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <CustomDatePickerModal
+                visible={showCustomDate}
+                onClose={() => { setReminderType('days'); setShowCustomDate(false); }}
+                onConfirm={() => setShowCustomDate(false)}
+                isTR={isTR}
+                colors={c}
+                state={{ day: customDay, month: customMonth, year: customYear }}
+                setState={{ setDay: setCustomDay, setMonth: setCustomMonth, setYear: setCustomYear }}
+            />
         </View>
     );
 }
@@ -445,5 +618,39 @@ const s = StyleSheet.create({
         color: '#0F1419',
         fontSize: 15,
         fontWeight: '700',
+    },
+    /* Reminder Styles */
+    reminderTypeTabs: {
+        flexDirection: 'row',
+        borderRadius: 14,
+        borderWidth: 1,
+        padding: 4,
+        marginBottom: 10,
+        gap: 4,
+    },
+    reminderTypeTab: {
+        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 10,
+        alignItems: 'center',
+        borderWidth: 1,
+    },
+    reminderTypeLabel: {
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    customDateBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        borderWidth: 1,
+        borderRadius: 14,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    customDateLabel: {
+        flex: 1,
+        fontSize: 15,
+        fontWeight: '600',
     },
 });

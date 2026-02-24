@@ -13,9 +13,15 @@ interface SwipeableRowProps {
     children: React.ReactNode;
     onDelete: () => void;
     deleteColor?: string;
+    backgroundColor?: string;
 }
 
-export default function SwipeableRow({ children, onDelete, deleteColor = '#EF4444' }: SwipeableRowProps) {
+export default function SwipeableRow({
+    children,
+    onDelete,
+    deleteColor = '#EF4444',
+    backgroundColor = 'transparent'
+}: SwipeableRowProps) {
     const translateX = useRef(new Animated.Value(0)).current;
     const isSwipedOpen = useRef(false);
 
@@ -86,7 +92,7 @@ export default function SwipeableRow({ children, onDelete, deleteColor = '#EF444
 
             {/* Foreground row — sits on top with higher zIndex */}
             <Animated.View
-                style={[s.foreground, { transform: [{ translateX }] }]}
+                style={[s.foreground, { transform: [{ translateX }], backgroundColor }]}
                 {...panResponder.panHandlers}
             >
                 {/* Invisible tap catcher to close swipe when tapping open row */}

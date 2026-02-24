@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { ArrowRight, Globe, Lock, Mail, Shield, User } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     Animated,
     KeyboardAvoidingView,
@@ -26,6 +27,7 @@ export default function RegisterScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(40)).current;
@@ -37,7 +39,7 @@ export default function RegisterScreen() {
         ]).start();
     }, []);
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         if (!name || !email || !password) {
             Alert.alert(
                 isTR ? 'Hata' : 'Error',
@@ -60,8 +62,22 @@ export default function RegisterScreen() {
             return;
         }
 
-        register(name.trim(), email.trim());
-        router.replace('/(tabs)');
+        setLoading(true);
+        const result = await register(name.trim(), email.trim(), password);
+        setLoading(false);
+
+        if (result.success) {
+            Alert.alert(
+                isTR ? 'Başarılı' : 'Success',
+                isTR ? 'Kaydınız oluşturuldu. Lütfen e-postanızı kontrol edin.' : 'Account created. Please check your email.',
+                [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+            );
+        } else {
+            Alert.alert(
+                isTR ? 'Kayıt Hatası' : 'Registration Error',
+                result.error
+            );
+        }
     };
 
     const toggleLang = () => {
@@ -168,12 +184,22 @@ export default function RegisterScreen() {
                         </View>
 
                         {/* Register Button */}
-                        <TouchableOpacity onPress={handleRegister} activeOpacity={0.85}>
-                            <View style={s.signUpBtn}>
-                                <Text style={s.signUpText}>
-                                    {isTR ? 'Kayıt Ol' : 'Sign Up'}
-                                </Text>
-                                <ArrowRight size={20} color="#0F1419" />
+                        <TouchableOpacity
+                            onPress={handleRegister}
+                            activeOpacity={0.85}
+                            disabled={loading}
+                        >
+                            <View style={[s.signUpBtn, loading && { opacity: 0.7 }]}>
+                                {loading ? (
+                                    <ActivityIndicator color="#0F1419" />
+                                ) : (
+                                    <>
+                                        <Text style={s.signUpText}>
+                                            {isTR ? 'Kayıt Ol' : 'Sign Up'}
+                                        </Text>
+                                        <ArrowRight size={20} color="#0F1419" />
+                                    </>
+                                )}
                             </View>
                         </TouchableOpacity>
 

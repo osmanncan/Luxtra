@@ -119,11 +119,14 @@ export default function AddSubscription() {
     }
 
     const today = new Date();
-    let nextDate = new Date(today.getFullYear(), today.getMonth(), +day);
+    const nextDate = new Date(today.getFullYear(), today.getMonth(), +day);
     if (nextDate < today) nextDate.setMonth(nextDate.getMonth() + 1);
 
+    const newId = Date.now().toString();
+    const reminderDateValue = reminderType === 'custom' ? getCustomReminderDate()?.toISOString() : undefined;
+
     addSubscription({
-      id: Date.now().toString(),
+      id: newId,
       name: name.trim(),
       amount: parseFloat(amount),
       currency: userCurrency,
@@ -131,6 +134,7 @@ export default function AddSubscription() {
       nextBillingDate: nextDate.toISOString(),
       category,
       reminderDays: reminderType === 'days' ? reminderDays : reminderType === 'months' ? reminderMonths * 30 : 1,
+      reminderDate: reminderDateValue,
     });
 
     let remindDate: Date | null = null;
@@ -148,19 +152,18 @@ export default function AddSubscription() {
       remindDate.setHours(9, 0, 0, 0);
     }
 
-    if (Notifications && remindDate && remindDate > new Date()) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: isTR ? 'Ödeme Hatırlatması 💸' : 'Payment Reminder 💸',
-          body: isTR
-            ? `${name} (${curr.symbol}${amount}) yakında ödenecek!`
-            : `${name} (${curr.symbol}${amount}) is due soon!`,
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: remindDate,
-        },
-      });
+    // Schedule Notification using NotificationService
+    if (remindDate && remindDate > new Date()) {
+      const { NotificationService } = require('../src/services/notificationService');
+      await NotificationService.scheduleNotification(
+        newId,
+        isTR ? 'Ödeme Hatırlatması 💸' : 'Payment Reminder 💸',
+        isTR
+          ? `${name.trim()} (${curr.symbol}${amount}) yakında ödenecek!`
+          : `${name.trim()} (${curr.symbol}${amount}) is due soon!`,
+        remindDate,
+        { id: newId, type: 'subscription' }
+      );
     }
 
     router.back();
