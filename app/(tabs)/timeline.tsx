@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Clock, Plus, RefreshCw, Search } from 'lucide-react-native';
+import { Plus, Search } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import SwipeableRow from '../../src/components/SwipeableRow';
+import { TimelineItem } from '../../src/components/timeline/TimelineItem';
 import { FREE_LIMITS } from '../../src/store/proFeatures';
 import { useThemeColors } from '../../src/store/theme';
 import { translations } from '../../src/store/translations';
@@ -36,7 +37,6 @@ export default function TimelineScreen() {
     Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
   }, []);
 
-  // Combine all items
   let allItems = [
     ...tasks.filter(t_ => !t_.isCompleted).map(t_ => ({
       id: t_.id, title: t_.title, date: t_.dueDate, kind: 'responsibility' as const,
@@ -48,13 +48,11 @@ export default function TimelineScreen() {
     })),
   ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  // Search filter
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
     allItems = allItems.filter(item => item.title.toLowerCase().includes(q));
   }
 
-  // Group by time
   const now = new Date();
   const todayStr = now.toDateString();
   const tomorrowDate = new Date(now);
@@ -93,13 +91,6 @@ export default function TimelineScreen() {
     { title: t.later, data: later, color: c.subtle },
   ].filter(s => s.data.length > 0);
 
-  const getKindStyle = (kind: string) => {
-    switch (kind) {
-      case 'payment': return { icon: '💳', label: t.payment };
-      default: return { icon: '📌', label: t.responsibility };
-    }
-  };
-
   const handleDelete = (item: any) => {
     Alert.alert(
       isTR ? 'Sil' : 'Delete',
@@ -119,52 +110,25 @@ export default function TimelineScreen() {
     );
   };
 
-  const renderItem = ({ item }: { item: any }) => {
-    const d = new Date(item.date);
-    const style = getKindStyle(item.kind);
-
-    return (
-      <SwipeableRow onDelete={() => handleDelete(item)} deleteColor={c.red}>
-        <TouchableOpacity
-          style={[s.itemCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}
-          activeOpacity={0.7}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            if (item.kind === 'payment') router.push(`/subscription/${item.id}`);
-          }}
-        >
-          <View style={[s.itemIconWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-            <Text style={{ fontSize: 16 }}>{style.icon}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={[s.itemTitle, { color: c.offWhite }]}>{item.title}</Text>
-              {item.isRecurring && (
-                <View style={[s.recurBadge, { backgroundColor: c.blue + '15' }]}>
-                  <RefreshCw size={9} color={c.blue} />
-                </View>
-              )}
-            </View>
-            <View style={s.itemMetaRow}>
-              <Clock size={11} color={c.subtle} />
-              <Text style={[s.itemMeta, { color: c.subtle }]}>
-                {d.toLocaleDateString(isTR ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric' })}
-                {item.amount ? ` · ${curr.symbol}${item.amount.toFixed(2)}` : ''}
-              </Text>
-            </View>
-            {item.isRecurring && item.recurringMonths && (
-              <Text style={[s.recurText, { color: c.dim }]}>
-                {t.repeatsEvery.replace('{months}', item.recurringMonths.toString())}
-              </Text>
-            )}
-          </View>
-          <View style={[s.kindPill, { backgroundColor: c.sectionBg }]}>
-            <Text style={[s.kindPillText, { color: c.muted }]}>{style.label}</Text>
-          </View>
-        </TouchableOpacity>
-      </SwipeableRow>
-    );
-  };
+  const renderItem = ({ item }: { item: any }) => (
+    <SwipeableRow onDelete={() => handleDelete(item)} deleteColor={c.red}>
+      <TimelineItem
+        item={item}
+        isTR={isTR}
+        currencySymbol={curr.symbol}
+        labels={{
+          payment: t.payment,
+          responsibility: t.responsibility,
+          repeatsEvery: t.repeatsEvery,
+        }}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          if (item.kind === 'payment') router.push(`/subscription/${item.id}`);
+        }}
+        colors={c}
+      />
+    </SwipeableRow>
+  );
 
   const renderSectionHeader = ({ section: { title, color, data } }: any) => (
     <View style={s.sectionHead}>
@@ -181,7 +145,6 @@ export default function TimelineScreen() {
       <StatusBar barStyle={c.statusBarStyle} />
 
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-        {/* Header */}
         <View style={s.header}>
           <View>
             <Text style={[s.headerLabel, { color: c.subtle }]}>{t.yourTimeline}</Text>
@@ -198,7 +161,6 @@ export default function TimelineScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Search */}
         <View style={[s.searchWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
           <Search size={18} color={c.dim} />
           <TextInput
@@ -210,7 +172,6 @@ export default function TimelineScreen() {
           />
         </View>
 
-        {/* Free tier slot counter */}
         {!isPro && (
           <View style={[s.slotBanner, { backgroundColor: c.amber + '10', borderColor: c.amber + '25' }]}>
             <Text style={[s.slotText, { color: c.amber }]}>
@@ -226,12 +187,10 @@ export default function TimelineScreen() {
           </View>
         )}
 
-        {/* Swipe hint */}
         <Text style={[s.swipeHint, { color: c.dim }]}>
           ← {isTR ? 'Silmek için sola kaydır' : 'Swipe left to delete'}
         </Text>
 
-        {/* Timeline List */}
         <SectionList
           sections={sections}
           keyExtractor={(item) => `${item.kind}-${item.id}`}

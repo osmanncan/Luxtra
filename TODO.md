@@ -3,8 +3,8 @@
 ## 📅 Planlanan Özellikler (v1.2 & v2.0) - Öncelikli
 
 ### Yeni Özellikler
--[ ] **Widget Desteği (iOS/Android):**
-  - Ana ekranda yaklaşan ödemeleri ve sorumlulukları görmek hayat kurtarır. Uygulamaya girmeden bilgi almak premium bir deneyimdir.
+- [x] **Widget Desteği (Android):**
+  - Ana ekranda yaklaşan ödemeleri ve sorumlulukları görmek için minimalist Android widget'ı hazır. (iOS desteği v2.0'a ertelendi).
 
 - [x] **Biyometrik Güvenlik (FaceID / TouchID):**
   - Finansal veriler (abonelikler, harcamalar) özeldir. Uygulamayı açarken yüz tanıma sorması güven verir.
@@ -145,10 +145,10 @@ AIzaSyDummyKeyReplace — AI insights özelliği çalışmıyor. Lokal fallback 
 updateSubscription fonksiyonu store'da var ama bunu kullanan bir edit ekranı göremiyorum (subscription/[id].tsx detay sayfası olabilir ama tam bir edit flow eksik gibi).
 
 Gereksiz / Sadeleştirilebilir Şeyler
-1. Login + Register ekranları (şu an için)
+/ 1. Login + Register ekranları (şu an için)
 Gerçek auth olmadan bu iki ekran gereksiz karmaşıklık. Uygulama direkt ana ekrandan başlayabilir, kullanıcı ayarlardan ismini girebilir. Auth ekle dediğinde zaten yeniden yazılacak.
 
-2. Onboarding biraz fazla
+/ 2. Onboarding biraz fazla
 Kullanıcıyı hızlı içeri almak daha iyi. 3 sayfa yerine 1-2 sayfa veya ilk kullanımda inline tooltip'ler daha modern olur.
 
 / 3. Free limitleri çok agresif
@@ -157,11 +157,16 @@ Kullanıcıyı hızlı içeri almak daha iyi. 3 sayfa yerine 1-2 sayfa veya ilk 
 / 4. Arama/Filtreleme'nin Pro'da olması
 Arama gibi temel bir UX özelliğini Pro'nun arkasına koymak kullanıcıyı sinirlendirir, motive etmez. Bunu free yapıp AI insights ve unlimited tracking'i Pro olarak bırakabilirsin.
 
-5. components ve components ayrımı
+/ 5. components ve components ayrımı
 İki ayrı components klasörün var. Birisi eski scaffold'dan kalma (EditScreenInfo, ExternalLink, Themed vs.). Bunlar kullanılmıyor gibi. Temizlenmeli.
 
-6. Widget desteği yarım
+ / 6. Widget desteği yarım
 Sadece Android için bir PaymentWidget.tsx var. iOS yok. Ya her iki platform için tamamla ya da v1'den çıkar.
+
+
+Kur çevirici canlı
+Belki reklam/abonelik modelleri için bir hazırlık veya ana ekrandaki grafiklerin geliştirilmesi?
+Yapay zeka için detay çalış[Grok apı var unutma]
 
 
 

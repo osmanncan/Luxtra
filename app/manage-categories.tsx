@@ -22,12 +22,19 @@ const PRESET_COLORS = [
     ['#f59e0b', '#fbbf24'], // Amber
     ['#10b981', '#34d399'], // Emerald
     ['#06b6d4', '#22d3ee'], // Cyan
+    ['#0ea5e9', '#38bdf8'], // Light Blue
     ['#3b82f6', '#60a5fa'], // Blue
     ['#6366f1', '#818cf8'], // Indigo
     ['#8b5cf6', '#a78bfa'], // Violet
+    ['#7c3aed', '#a855f7'], // Purple
     ['#ec4899', '#f472b6'], // Pink
+    ['#f43f5e', '#fb7185'], // Rose
+    ['#14b8a6', '#2dd4bf'], // Teal
+    ['#84cc16', '#a3e635'], // Lime
     ['#64748b', '#94a3b8'], // Slate
 ];
+
+const QUICK_EMOJIS = ['⭐', '🏠', '🚗', '🍔', '🛒', '✈️', '💻', '🎮', '🎧', '🏋️', '🐱', '🐾', '💡', '🛡️', '💰', '📅'];
 
 export default function ManageCategoriesScreen() {
     const router = useRouter();
@@ -150,8 +157,8 @@ export default function ManageCategoriesScreen() {
                                     placeholder="😃"
                                     placeholderTextColor={c.dim}
                                     value={newEmoji}
-                                    onChangeText={t => setNewEmoji(t.slice(-1))} // Only 1 char
-                                    maxLength={2}
+                                    onChangeText={t => setNewEmoji(t.slice(-2))} // Handle potential multi-char emojis
+                                    maxLength={4}
                                 />
                             </View>
                             <TextInput
@@ -162,6 +169,24 @@ export default function ManageCategoriesScreen() {
                                 onChangeText={setNewName}
                                 autoFocus
                             />
+                        </View>
+
+                        <Text style={[s.colorLabel, { color: c.subtle }]}>
+                            {isTR ? 'Hızlı Emoji Seç' : 'Quick Emoji Selection'}
+                        </Text>
+                        <View style={s.emojiGrid}>
+                            {QUICK_EMOJIS.map(emoji => (
+                                <TouchableOpacity
+                                    key={emoji}
+                                    style={[
+                                        s.quickEmojiBtn,
+                                        newEmoji === emoji && { backgroundColor: c.cardBorder }
+                                    ]}
+                                    onPress={() => setNewEmoji(emoji)}
+                                >
+                                    <Text style={{ fontSize: 20 }}>{emoji}</Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
 
                         <Text style={[s.colorLabel, { color: c.subtle }]}>
@@ -222,8 +247,10 @@ const s = StyleSheet.create({
     emojiInput: { fontSize: 24, textAlign: 'center' },
     nameInput: { flex: 1, height: 50, borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, fontSize: 16 },
     colorLabel: { fontSize: 13, fontWeight: '600', marginBottom: 12 },
-    colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
-    colorBtn: { width: 32, height: 32, borderRadius: 16 },
+    colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
+    colorBtn: { width: 34, height: 34, borderRadius: 17 },
+    emojiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
+    quickEmojiBtn: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
     saveBtn: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
     saveBtnText: { color: '#0F1419', fontWeight: '700', fontSize: 16 },
 });

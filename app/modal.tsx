@@ -20,7 +20,7 @@ export default function PaywallScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
-  const comparison = FEATURE_COMPARISON[language];
+  const comparison = FEATURE_COMPARISON[language as keyof typeof FEATURE_COMPARISON] || FEATURE_COMPARISON.en;
 
   useEffect(() => {
     Animated.parallel([

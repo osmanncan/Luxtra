@@ -13,15 +13,16 @@ import React, { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { CustomDatePickerModal } from '../src/components/shared/CustomDatePickerModal';
+import { FormField } from '../src/components/shared/FormField';
+import { HeroCard } from '../src/components/shared/HeroCard';
 import { canAddSubscription, FREE_LIMITS } from '../src/store/proFeatures';
 import { useThemeColors } from '../src/store/theme';
 import { CURRENCIES, SUB_CATEGORIES, useStore } from '../src/store/useStore';
@@ -67,12 +68,10 @@ export default function AddSubscription() {
   const [cycle, setCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [category, setCategory] = useState('General');
 
-  // Reminder state
   const [reminderType, setReminderType] = useState<'days' | 'months' | 'custom'>('days');
   const [reminderDays, setReminderDays] = useState(1);
   const [reminderMonths, setReminderMonths] = useState(1);
 
-  // Custom date modal
   const [showCustomDate, setShowCustomDate] = useState(false);
   const [customDay, setCustomDay] = useState('');
   const [customMonth, setCustomMonth] = useState('');
@@ -134,7 +133,6 @@ export default function AddSubscription() {
       reminderDays: reminderType === 'days' ? reminderDays : reminderType === 'months' ? reminderMonths * 30 : 1,
     });
 
-    // Calculate reminder date
     let remindDate: Date | null = null;
     if (reminderType === 'days') {
       remindDate = new Date(nextDate);
@@ -147,7 +145,6 @@ export default function AddSubscription() {
     }
 
     if (remindDate) {
-      // Gelişmiş Bildirim: Hatırlatmayı sabah 09:00'a ayarla
       remindDate.setHours(9, 0, 0, 0);
     }
 
@@ -171,7 +168,6 @@ export default function AddSubscription() {
 
   return (
     <View style={[st.container, { backgroundColor: c.base }]}>
-      {/* Header */}
       <View style={st.header}>
         <TouchableOpacity onPress={() => router.back()} style={[st.backBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
           <ArrowLeft size={22} color={c.offWhite} strokeWidth={2.5} />
@@ -182,77 +178,47 @@ export default function AddSubscription() {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40 }}
-        >
-          {/* Hero */}
-          <View style={[st.heroCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-            <View style={[st.heroIcon, { backgroundColor: c.cardBorder }]}>
-              <Text style={{ fontSize: 28 }}>💳</Text>
-            </View>
-            <Text style={[st.heroTitle, { color: c.offWhite }]}>
-              {isTR ? 'Düzenli ödemeyi takip et' : 'Track a recurring payment'}
-            </Text>
-            <Text style={[st.heroSub, { color: c.subtle }]}>
-              {isTR ? 'Ödemeler hesabına düşmeden önce seni uyaralım.' : 'Get reminded before charges hit your account.'}
-            </Text>
-          </View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
 
-          {/* Name */}
-          <Text style={[st.label, { color: c.subtle }]}>
-            {isTR ? 'HİZMET ADI' : 'SERVICE NAME'}
-          </Text>
-          <View style={[st.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-            <Tag size={16} color={c.dim} style={{ marginRight: 12 }} />
-            <TextInput
-              placeholder={isTR ? 'Netflix, Spotify, Spor Salonu...' : 'Netflix, Spotify, Gym...'}
-              placeholderTextColor={c.dim}
-              style={[st.input, { color: c.offWhite }]}
-              value={name}
-              onChangeText={setName}
-              autoFocus
-            />
-          </View>
+          <HeroCard
+            emoji="💳"
+            title={isTR ? 'Düzenli ödemeyi takip et' : 'Track a recurring payment'}
+            subtitle={isTR ? 'Ödemeler hesabına düşmeden önce seni uyaralım.' : 'Get reminded before charges hit your account.'}
+            colors={c}
+          />
 
-          {/* Amount */}
-          <Text style={[st.label, { color: c.subtle }]}>
-            {isTR ? 'TUTAR' : 'AMOUNT'}
-          </Text>
-          <View style={[st.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-            <DollarSign size={16} color={c.dim} style={{ marginRight: 12 }} />
-            <TextInput
-              placeholder="0.00"
-              placeholderTextColor={c.dim}
-              style={[st.input, { color: c.offWhite }]}
-              keyboardType="decimal-pad"
-              value={amount}
-              onChangeText={setAmount}
-            />
-          </View>
+          <FormField
+            label={isTR ? 'Hizmet Adı' : 'Service Name'}
+            placeholder={isTR ? 'Netflix, Spotify, Spor Salonu...' : 'Netflix, Spotify, Gym...'}
+            value={name}
+            onChangeText={setName}
+            colors={c}
+            autoFocus
+            icon={<Tag size={16} color={c.dim} style={{ marginRight: 12 }} />}
+          />
 
-          {/* Billing Day */}
-          <Text style={[st.label, { color: c.subtle }]}>
-            {isTR ? 'ÖDEME GÜNÜ (1–31)' : 'BILLING DAY (1–31)'}
-          </Text>
-          <View style={[st.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-            <CalendarIcon size={16} color={c.dim} style={{ marginRight: 12 }} />
-            <TextInput
-              placeholder={isTR ? 'örn. 15' : 'e.g. 15'}
-              placeholderTextColor={c.dim}
-              style={[st.input, { color: c.offWhite }]}
-              keyboardType="number-pad"
-              value={day}
-              onChangeText={setDay}
-              maxLength={2}
-            />
-          </View>
+          <FormField
+            label={isTR ? 'Tutar' : 'Amount'}
+            placeholder="0.00"
+            keyboardType="decimal-pad"
+            value={amount}
+            onChangeText={setAmount}
+            colors={c}
+            icon={<DollarSign size={16} color={c.dim} style={{ marginRight: 12 }} />}
+          />
 
-          {/* Cycle */}
+          <FormField
+            label={isTR ? 'Ödeme Günü (1–31)' : 'Billing Day (1–31)'}
+            placeholder={isTR ? 'örn. 15' : 'e.g. 15'}
+            keyboardType="number-pad"
+            value={day}
+            onChangeText={setDay}
+            colors={c}
+            maxLength={2}
+            icon={<CalendarIcon size={16} color={c.dim} style={{ marginRight: 12 }} />}
+          />
+
           <Text style={[st.label, { color: c.subtle }]}>
             {isTR ? 'ÖDEME DÖNEMİ' : 'BILLING CYCLE'}
           </Text>
@@ -271,12 +237,10 @@ export default function AddSubscription() {
             ))}
           </View>
 
-          {/* Reminder */}
           <Text style={[st.label, { color: c.subtle }]}>
             {isTR ? 'HATIRLATMA' : 'REMINDER'}
           </Text>
 
-          {/* Type tabs */}
           <View style={[st.reminderTypeTabs, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
             {(['days', 'months', 'custom'] as const).map(type => (
               <TouchableOpacity
@@ -291,9 +255,7 @@ export default function AddSubscription() {
                 }}
               >
                 <Text style={[st.reminderTypeLabel, { color: reminderType === type ? c.emerald : c.subtle }]}>
-                  {type === 'days' ? (isTR ? 'Gün' : 'Days') :
-                    type === 'months' ? (isTR ? 'Ay' : 'Months') :
-                      (isTR ? 'Özel' : 'Custom')}
+                  {type === 'days' ? (isTR ? 'Gün' : 'Days') : type === 'months' ? (isTR ? 'Ay' : 'Months') : (isTR ? 'Özel' : 'Custom')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -309,9 +271,7 @@ export default function AddSubscription() {
                 >
                   <Bell size={14} color={reminderDays === days ? c.emerald : c.dim} />
                   <Text style={[st.cycleBtnText, { color: reminderDays === days ? c.emerald : c.subtle }]}>
-                    {isTR
-                      ? (days === 7 ? '1 Hafta' : `${days} Gün`)
-                      : (days === 7 ? '1 Week' : `${days} Days`)}
+                    {isTR ? (days === 7 ? '1 Hafta' : `${days} Gün`) : (days === 7 ? '1 Week' : `${days} Days`)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -350,15 +310,10 @@ export default function AddSubscription() {
             </TouchableOpacity>
           )}
 
-          {/* Category */}
           <Text style={[st.label, { color: c.subtle }]}>
             {isTR ? 'KATEGORİ' : 'CATEGORY'}
           </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ marginBottom: 32 }}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 32 }}>
             {Object.keys(allCategories).map((cat_key) => {
               const catConfig = allCategories[cat_key];
               const active = category === cat_key;
@@ -377,7 +332,6 @@ export default function AddSubscription() {
             })}
           </ScrollView>
 
-          {/* Save */}
           <TouchableOpacity
             onPress={handleSave}
             disabled={!isValid}
@@ -391,84 +345,15 @@ export default function AddSubscription() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Custom Date Modal */}
-      <Modal visible={showCustomDate} transparent animationType="slide">
-        <View style={st.modalOverlay}>
-          <View style={[st.modalCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-            <Text style={[st.modalTitle, { color: c.offWhite }]}>
-              {isTR ? 'Özel Hatırlatma Tarihi' : 'Custom Reminder Date'}
-            </Text>
-            <Text style={[st.modalSub, { color: c.subtle }]}>
-              {isTR ? 'Hatırlatma için bir tarih seç' : 'Pick a date for the reminder'}
-            </Text>
-
-            <View style={st.dateRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[st.dateLabel, { color: c.subtle }]}>{isTR ? 'GÜN' : 'DAY'}</Text>
-                <TextInput
-                  style={[st.dateInput, { backgroundColor: c.base, borderColor: c.cardBorder, color: c.offWhite }]}
-                  placeholder="15"
-                  placeholderTextColor={c.dim}
-                  keyboardType="number-pad"
-                  maxLength={2}
-                  value={customDay}
-                  onChangeText={setCustomDay}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[st.dateLabel, { color: c.subtle }]}>{isTR ? 'AY' : 'MONTH'}</Text>
-                <TextInput
-                  style={[st.dateInput, { backgroundColor: c.base, borderColor: c.cardBorder, color: c.offWhite }]}
-                  placeholder="06"
-                  placeholderTextColor={c.dim}
-                  keyboardType="number-pad"
-                  maxLength={2}
-                  value={customMonth}
-                  onChangeText={setCustomMonth}
-                />
-              </View>
-              <View style={{ flex: 1.2 }}>
-                <Text style={[st.dateLabel, { color: c.subtle }]}>{isTR ? 'YIL' : 'YEAR'}</Text>
-                <TextInput
-                  style={[st.dateInput, { backgroundColor: c.base, borderColor: c.cardBorder, color: c.offWhite }]}
-                  placeholder="2026"
-                  placeholderTextColor={c.dim}
-                  keyboardType="number-pad"
-                  maxLength={4}
-                  value={customYear}
-                  onChangeText={setCustomYear}
-                />
-              </View>
-            </View>
-
-            <View style={st.modalBtns}>
-              <TouchableOpacity
-                style={[st.modalCancelBtn, { borderColor: c.cardBorder }]}
-                onPress={() => { setReminderType('days'); setShowCustomDate(false); }}
-              >
-                <Text style={{ fontSize: 15, fontWeight: '600', color: c.subtle }}>
-                  {isTR ? 'İptal' : 'Cancel'}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[st.modalConfirmBtn, { backgroundColor: c.emerald }]}
-                onPress={() => {
-                  const d = getCustomReminderDate();
-                  if (!d) {
-                    Alert.alert(isTR ? 'Geçersiz Tarih' : 'Invalid Date', isTR ? 'Lütfen geçerli bir tarih gir.' : 'Please enter a valid date.');
-                    return;
-                  }
-                  setShowCustomDate(false);
-                }}
-              >
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#0F1419' }}>
-                  {isTR ? 'Tamam' : 'Confirm'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <CustomDatePickerModal
+        visible={showCustomDate}
+        onClose={() => { setReminderType('days'); setShowCustomDate(false); }}
+        onConfirm={() => setShowCustomDate(false)}
+        isTR={isTR}
+        colors={c}
+        state={{ day: customDay, month: customMonth, year: customYear }}
+        setState={{ setDay: setCustomDay, setMonth: setCustomMonth, setYear: setCustomYear }}
+      />
     </View>
   );
 }

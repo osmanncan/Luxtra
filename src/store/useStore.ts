@@ -12,6 +12,10 @@ export const SUB_CATEGORIES: Record<string, { emoji: string; colors: [string, st
   Food: { emoji: '🍔', colors: ['#f59e0b', '#fbbf24'] },
   Education: { emoji: '📚', colors: ['#06b6d4', '#22d3ee'] },
   Gaming: { emoji: '🎮', colors: ['#ef4444', '#f87171'] },
+  Shopping: { emoji: '🛍️', colors: ['#f43f5e', '#fb7185'] },
+  Travel: { emoji: '✈️', colors: ['#0ea5e9', '#38bdf8'] },
+  Utilities: { emoji: '💡', colors: ['#eab308', '#facc15'] },
+  Insurance: { emoji: '🛡️', colors: ['#64748b', '#94a3b8'] },
   General: { emoji: '💳', colors: ['#6366f1', '#818cf8'] },
 };
 
@@ -25,6 +29,15 @@ export const CURRENCIES: Record<string, { symbol: string; code: string }> = {
   USD: { symbol: '$', code: 'USD' },
   EUR: { symbol: '€', code: 'EUR' },
   GBP: { symbol: '£', code: 'GBP' },
+  JPY: { symbol: '¥', code: 'JPY' },
+  CAD: { symbol: 'C$', code: 'CAD' },
+  AUD: { symbol: 'A$', code: 'AUD' },
+  CHF: { symbol: 'Fr', code: 'CHF' },
+  BRL: { symbol: 'R$', code: 'BRL' },
+  SAR: { symbol: '﷼', code: 'SAR' },
+  AED: { symbol: 'د.إ', code: 'AED' },
+  RUB: { symbol: '₽', code: 'RUB' },
+  CNY: { symbol: '¥', code: 'CNY' },
 };
 
 export interface Subscription {
@@ -77,8 +90,8 @@ interface AppState {
   updateProfile: (updates: Partial<User>) => void;
 
   // Settings
-  language: 'en' | 'tr';
-  setLanguage: (lang: 'en' | 'tr') => void;
+  language: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar';
+  setLanguage: (lang: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar') => void;
   currency: string;
   setCurrency: (currency: string) => void;
 
@@ -123,7 +136,7 @@ interface AppState {
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
-      user: null,
+      user: { name: 'Kullanıcı', email: '', isPro: false },
       language: 'tr',
       currency: 'TRY',
       theme: 'dark',
@@ -139,7 +152,7 @@ export const useStore = create<AppState>()(
       register: (name, email) => set({
         user: { name, email, isPro: false }
       }),
-      logout: () => set({ user: null }),
+      logout: () => set({ user: { name: 'Kullanıcı', email: '', isPro: false } }),
 
       updateProfile: (updates) => set((state) => ({
         user: state.user ? { ...state.user, ...updates } : null,
@@ -148,9 +161,9 @@ export const useStore = create<AppState>()(
       setLanguage: (language) => set({ language }),
       setCurrency: (currency) => set((state) => {
         if (Platform.OS === 'android') {
-            import('../services/widgetService').then(mod => {
-                mod.updateAndroidWidget(state.subscriptions, currency);
-            });
+          import('../services/widgetService').then(mod => {
+            mod.updateAndroidWidget(state.subscriptions, currency);
+          });
         }
         return { currency };
       }),
@@ -248,33 +261,33 @@ export const useStore = create<AppState>()(
 
       addSubscription: (sub) =>
         set((state) => {
-            const newSubs = [...state.subscriptions, sub];
-            if (Platform.OS === 'android') {
-                import('../services/widgetService').then(mod => {
-                    mod.updateAndroidWidget(newSubs, state.currency);
-                });
-            }
-            return { subscriptions: newSubs };
+          const newSubs = [...state.subscriptions, sub];
+          if (Platform.OS === 'android') {
+            import('../services/widgetService').then(mod => {
+              mod.updateAndroidWidget(newSubs, state.currency);
+            });
+          }
+          return { subscriptions: newSubs };
         }),
       removeSubscription: (id) =>
         set((state) => {
-            const newSubs = state.subscriptions.filter((s) => s.id !== id);
-             if (Platform.OS === 'android') {
-                import('../services/widgetService').then(mod => {
-                    mod.updateAndroidWidget(newSubs, state.currency);
-                });
-            }
-            return { subscriptions: newSubs };
+          const newSubs = state.subscriptions.filter((s) => s.id !== id);
+          if (Platform.OS === 'android') {
+            import('../services/widgetService').then(mod => {
+              mod.updateAndroidWidget(newSubs, state.currency);
+            });
+          }
+          return { subscriptions: newSubs };
         }),
       updateSubscription: (id, updates) =>
         set((state) => {
-            const newSubs = state.subscriptions.map((s) => s.id === id ? { ...s, ...updates } : s);
-             if (Platform.OS === 'android') {
-                import('../services/widgetService').then(mod => {
-                    mod.updateAndroidWidget(newSubs, state.currency);
-                });
-            }
-            return { subscriptions: newSubs };
+          const newSubs = state.subscriptions.map((s) => s.id === id ? { ...s, ...updates } : s);
+          if (Platform.OS === 'android') {
+            import('../services/widgetService').then(mod => {
+              mod.updateAndroidWidget(newSubs, state.currency);
+            });
+          }
+          return { subscriptions: newSubs };
         }),
       markSubscriptionPaid: (id) =>
         set((state) => ({
@@ -305,12 +318,8 @@ export const useStore = create<AppState>()(
       removeCustomCategory: (name) => set((state) => {
         const newCats = { ...state.customCategories };
         delete newCats[name];
-        return { customCategories: newCats };if (Platform.OS === 'android') {
-  // We need to import dynamically to avoid issues on web/iOS during build time if package is missing
-  import('../services/widgetService').then(mod => {
-    mod.updateAndroidWidget(get().subscriptions, get().currency);
-  });
-}      }),
+        return { customCategories: newCats };
+      }),
     }),
     {
       name: 'lifeos-storage',

@@ -6,7 +6,6 @@ import {
     DollarSign,
     Repeat,
     Save,
-    Shield,
     Tag,
     Trash2
 } from 'lucide-react-native';
@@ -19,10 +18,11 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import { FormField } from '../../src/components/shared/FormField';
+import { HeroCard } from '../../src/components/shared/HeroCard';
 import { useThemeColors } from '../../src/store/theme';
 import { translations } from '../../src/store/translations';
 import { CURRENCIES, SUB_CATEGORIES, useStore } from '../../src/store/useStore';
@@ -49,8 +49,6 @@ export default function SubscriptionDetails() {
     const [day, setDay] = useState(sub ? new Date(sub.nextBillingDate).getDate().toString() : '');
 
     const allCategories = { ...SUB_CATEGORIES, ...customCategories };
-
-    // Paid animation
     const checkScaleAnim = useRef(new Animated.Value(sub?.isPaid ? 1 : 0)).current;
 
     useEffect(() => {
@@ -122,7 +120,6 @@ export default function SubscriptionDetails() {
 
     return (
         <View style={[s.container, { backgroundColor: c.base }]}>
-            {/* Header */}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={[s.backBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                     <ArrowLeft size={22} color={c.offWhite} />
@@ -132,7 +129,6 @@ export default function SubscriptionDetails() {
                 </Text>
                 <TouchableOpacity onPress={() => {
                     if (isEditing) {
-                        // Reset state on cancel
                         setName(sub.name);
                         setAmount(sub.amount.toString());
                         setDesc(sub.description || '');
@@ -150,169 +146,117 @@ export default function SubscriptionDetails() {
 
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
                 <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
-                    {/* Hero - Only show in non-edit mode */}
-                    {!isEditing && (
-                        <View style={[s.heroCard, { backgroundColor: c.card, borderColor: sub.isPaid ? c.emerald + '40' : c.cardBorder }]}>
-                            <View style={[s.iconCircle, { backgroundColor: cat.colors[0] + '20' }]}>
-                                <Text style={s.emoji}>{cat.emoji}</Text>
-                            </View>
-                            <Text style={[s.heroName, { color: c.offWhite }]}>{sub.name}</Text>
-                            <View style={s.heroAmountRow}>
-                                <Text style={[s.heroAmount, { color: c.offWhite }]}>{curr.symbol}{sub.amount.toFixed(2)}</Text>
-                                <Text style={[s.heroCycle, { color: c.subtle }]}>
-                                    /{sub.billingCycle === 'monthly' ? (isTR ? 'ay' : 'mo') : (isTR ? 'yıl' : 'yr')}
-                                </Text>
-                            </View>
+                    {!isEditing ? (
+                        <>
+                            <HeroCard
+                                emoji={cat.emoji}
+                                title={sub.name}
+                                subtitle={`${curr.symbol}${sub.amount.toFixed(2)} / ${sub.billingCycle === 'monthly' ? (isTR ? 'ay' : 'mo') : (isTR ? 'yıl' : 'yr')}`}
+                                colors={c}
+                            />
 
-                            {/* Due pill */}
-                            {diffDays >= 0 && (
-                                <View style={[s.duePill, { backgroundColor: c.amber + '12', borderColor: c.amber + '25' }]}>
-                                    <Text style={[s.dueText, { color: c.amber }]}>
-                                        {diffDays === 0
-                                            ? (isTR ? 'Bugün ödenmeli' : 'Due today')
-                                            : diffDays === 1
-                                                ? (isTR ? 'Yarın ödenmeli' : 'Due tomorrow')
-                                                : (isTR ? `${diffDays} gün sonra` : `Due in ${diffDays} days`)}
-                                    </Text>
-                                </View>
-                            )}
-
-                            {/* Paid status badge */}
-                            {sub.isPaid && (
-                                <Animated.View style={[s.paidBadgeLarge, { transform: [{ scale: checkScaleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }) }] }]}>
-                                    <Check size={16} color={c.emerald} strokeWidth={3} />
-                                    <Text style={[s.paidBadgeText, { color: c.emerald }]}>
-                                        {isTR ? 'Ödendi' : 'Paid'}
-                                    </Text>
-                                </Animated.View>
-                            )}
-                        </View>
-                    )}
-
-                    {!isEditing && (
-                        <TouchableOpacity
-                            onPress={handleMarkPaid}
-                            style={[
-                                s.markPaidBtn,
-                                {
-                                    backgroundColor: sub.isPaid ? c.card : c.emerald + '12',
-                                    borderColor: sub.isPaid ? c.cardBorder : c.emerald + '30',
-                                },
-                            ]}
-                            activeOpacity={0.8}
-                        >
-                            <Check size={18} color={sub.isPaid ? c.muted : c.emerald} strokeWidth={2.5} />
-                            <Text style={[s.markPaidText, { color: sub.isPaid ? c.muted : c.emerald }]}>
-                                {sub.isPaid
-                                    ? (isTR ? 'Ödenmedi Olarak İşaretle' : 'Mark as Unpaid')
-                                    : (isTR ? 'Ödendi Olarak İşaretle' : 'Mark as Paid')}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-
-                    {!isEditing && (
-                        <View style={[s.infoCard, { backgroundColor: c.emerald + '10', borderColor: c.emerald + '20' }]}>
-                            <Shield size={16} color={c.emerald} />
-                            <Text style={[s.infoText, { color: c.subtle }]}>
-                                {isTR ? 'Bir sonraki ödeme öncesinde seni uyaracağız.' : "We'll remind you before the next charge."}
-                            </Text>
-                        </View>
-                    )}
-
-                    {/* Form Fields */}
-                    <View style={s.form}>
-                        {/* Name */}
-                        <View style={s.field}>
-                            <Text style={[s.label, { color: c.subtle }]}>{t.nameLabel}</Text>
-                            {isEditing ? (
-                                <View style={[s.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                                    <Tag size={16} color={c.dim} style={{ marginRight: 12 }} />
-                                    <TextInput style={[s.input, { color: c.offWhite }]} value={name} onChangeText={setName} placeholderTextColor={c.dim} />
-                                </View>
-                            ) : (
-                                <View style={[s.displayField, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                                    <Text style={[s.value, { color: c.offWhite }]}>{sub.name}</Text>
-                                </View>
-                            )}
-                        </View>
-
-                        {/* Amount */}
-                        <View style={s.field}>
-                            <Text style={[s.label, { color: c.subtle }]}>{t.amountLabel}</Text>
-                            {isEditing ? (
-                                <View style={[s.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                                    <DollarSign size={16} color={c.dim} style={{ marginRight: 12 }} />
-                                    <TextInput style={[s.input, { color: c.offWhite }]} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" placeholderTextColor={c.dim} />
-                                </View>
-                            ) : (
-                                <View style={[s.displayField, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                                    <Text style={[s.value, { color: c.offWhite }]}>{curr.symbol}{sub.amount.toFixed(2)}</Text>
-                                </View>
-                            )}
-                        </View>
-
-                        {/* Billing Day & Cycle - Only in Edit Mode */}
-                        {isEditing && (
-                            <>
-                                <View style={s.field}>
-                                    <Text style={[s.label, { color: c.subtle }]}>{t.dayLabel}</Text>
-                                    <View style={[s.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                                        <Calendar size={16} color={c.dim} style={{ marginRight: 12 }} />
-                                        <TextInput
-                                            style={[s.input, { color: c.offWhite }]}
-                                            value={day}
-                                            onChangeText={setDay}
-                                            keyboardType="number-pad"
-                                            maxLength={2}
-                                            placeholder="15"
-                                            placeholderTextColor={c.dim}
-                                        />
+                            <View style={{ alignItems: 'center', marginTop: -10, marginBottom: 20 }}>
+                                {diffDays >= 0 && (
+                                    <View style={[s.duePill, { backgroundColor: c.amber + '12', borderColor: c.amber + '25' }]}>
+                                        <Text style={[s.dueText, { color: c.amber }]}>
+                                            {diffDays === 0 ? (isTR ? 'Bugün ödenmeli' : 'Due today') :
+                                                diffDays === 1 ? (isTR ? 'Yarın ödenmeli' : 'Due tomorrow') :
+                                                    (isTR ? `${diffDays} gün sonra` : `Due in ${diffDays} days`)}
+                                        </Text>
                                     </View>
-                                </View>
+                                )}
+                                {sub.isPaid && (
+                                    <Animated.View style={[s.paidBadgeLarge, { transform: [{ scale: checkScaleAnim }] }]}>
+                                        <Check size={16} color={c.emerald} strokeWidth={3} />
+                                        <Text style={[s.paidBadgeText, { color: c.emerald }]}>{isTR ? 'Ödendi' : 'Paid'}</Text>
+                                    </Animated.View>
+                                )}
+                            </View>
 
-                                <View style={s.field}>
-                                    <Text style={[s.label, { color: c.subtle }]}>{t.cycleLabel}</Text>
-                                    <View style={s.cycleRow}>
-                                        {(['monthly', 'yearly'] as const).map((opt) => (
+                            <TouchableOpacity
+                                onPress={handleMarkPaid}
+                                style={[s.markPaidBtn, { backgroundColor: sub.isPaid ? c.card : c.emerald + '12', borderColor: sub.isPaid ? c.cardBorder : c.emerald + '30' }]}
+                            >
+                                <Check size={18} color={sub.isPaid ? c.muted : c.emerald} strokeWidth={2.5} />
+                                <Text style={[s.markPaidText, { color: sub.isPaid ? c.muted : c.emerald }]}>
+                                    {sub.isPaid ? (isTR ? 'Ödenmedi Olarak İşaretle' : 'Mark as Unpaid') : (isTR ? 'Ödendi Olarak İşaretle' : 'Mark as Paid')}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <View style={s.form}>
+                            <FormField
+                                label={t.nameLabel}
+                                icon={<Tag size={16} color={c.dim} />}
+                                value={name}
+                                onChangeText={setName}
+                                colors={c}
+                            />
+
+                            <FormField
+                                label={t.amountLabel}
+                                icon={<DollarSign size={16} color={c.dim} />}
+                                value={amount}
+                                onChangeText={setAmount}
+                                keyboardType="decimal-pad"
+                                suffix={curr.code}
+                                colors={c}
+                            />
+
+                            <FormField
+                                label={t.dayLabel}
+                                icon={<Calendar size={16} color={c.dim} />}
+                                value={day}
+                                onChangeText={setDay}
+                                keyboardType="number-pad"
+                                maxLength={2}
+                                colors={c}
+                            />
+
+                            <View style={s.field}>
+                                <Text style={[s.label, { color: c.subtle }]}>{t.cycleLabel.toUpperCase()}</Text>
+                                <View style={s.cycleRow}>
+                                    {(['monthly', 'yearly'] as const).map((opt) => (
+                                        <TouchableOpacity
+                                            key={opt}
+                                            onPress={() => setCycle(opt)}
+                                            style={[s.cycleBtn, { backgroundColor: c.card, borderColor: cycle === opt ? c.emerald + '30' : c.cardBorder }]}
+                                        >
+                                            <Repeat size={14} color={cycle === opt ? c.emerald : c.dim} />
+                                            <Text style={[s.cycleBtnText, { color: cycle === opt ? c.emerald : c.subtle }]}>
+                                                {opt === 'monthly' ? (isTR ? 'Aylık' : 'Monthly') : (isTR ? 'Yıllık' : 'Yearly')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+
+                            <View style={s.field}>
+                                <Text style={[s.label, { color: c.subtle }]}>{t.categoryLabel.toUpperCase()}</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 4 }}>
+                                    {Object.keys(allCategories).map((cat_key) => {
+                                        const catConfig = allCategories[cat_key];
+                                        const active = category === cat_key;
+                                        return (
                                             <TouchableOpacity
-                                                key={opt}
-                                                onPress={() => setCycle(opt)}
-                                                style={[s.cycleBtn, { backgroundColor: c.card, borderColor: cycle === opt ? c.emerald + '30' : c.cardBorder }]}
+                                                key={cat_key}
+                                                onPress={() => setCategory(cat_key)}
+                                                style={[s.catChip, { backgroundColor: c.card, borderColor: active ? c.emerald + '30' : c.cardBorder }]}
                                             >
-                                                <Repeat size={14} color={cycle === opt ? c.emerald : c.dim} />
-                                                <Text style={[s.cycleBtnText, { color: cycle === opt ? c.emerald : c.subtle }]}>
-                                                    {opt === 'monthly' ? (isTR ? 'Aylık' : 'Monthly') : (isTR ? 'Yıllık' : 'Yearly')}
+                                                <Text style={{ fontSize: 14 }}>{catConfig.emoji}</Text>
+                                                <Text style={[s.catChipText, { color: active ? c.emerald : c.subtle }]}>
+                                                    {cat_key}
                                                 </Text>
                                             </TouchableOpacity>
-                                        ))}
-                                    </View>
-                                </View>
+                                        );
+                                    })}
+                                </ScrollView>
+                            </View>
+                        </View>
+                    )}
 
-                                <View style={s.field}>
-                                    <Text style={[s.label, { color: c.subtle }]}>{t.categoryLabel}</Text>
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 4 }}>
-                                        {Object.keys(allCategories).map((cat_key) => {
-                                            const catConfig = allCategories[cat_key];
-                                            const active = category === cat_key;
-                                            return (
-                                                <TouchableOpacity
-                                                    key={cat_key}
-                                                    onPress={() => setCategory(cat_key)}
-                                                    style={[s.catChip, { backgroundColor: c.card, borderColor: active ? c.emerald + '30' : c.cardBorder }]}
-                                                >
-                                                    <Text style={{ fontSize: 14 }}>{catConfig.emoji}</Text>
-                                                    <Text style={[s.catChipText, { color: active ? c.emerald : c.subtle }]}>
-                                                        {cat_key}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            );
-                                        })}
-                                    </ScrollView>
-                                </View>
-                            </>
-                        )}
-
-                        {!isEditing && (
+                    {!isEditing && (
+                        <View style={s.form}>
                             <View style={s.field}>
                                 <Text style={[s.label, { color: c.subtle }]}>{isTR ? 'SONRAKİ ÖDEME' : 'NEXT BILLING'}</Text>
                                 <View style={[s.displayField, { backgroundColor: c.card, borderColor: c.cardBorder, flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
@@ -322,40 +266,31 @@ export default function SubscriptionDetails() {
                                     </Text>
                                 </View>
                             </View>
-                        )}
 
-                        {/* Description */}
-                        <View style={s.field}>
-                            <Text style={[s.label, { color: c.subtle }]}>{t.descriptionLabel}</Text>
-                            {isEditing ? (
-                                <View style={[s.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                                    <TextInput
-                                        style={[s.input, { minHeight: 80, textAlignVertical: 'top', color: c.offWhite }]}
-                                        value={desc}
-                                        onChangeText={setDesc}
-                                        multiline
-                                        placeholder={isTR ? 'Not ekle...' : 'Add notes...'}
-                                        placeholderTextColor={c.dim}
-                                    />
-                                </View>
-                            ) : (
+                            <View style={s.field}>
+                                <Text style={[s.label, { color: c.subtle }]}>{t.descriptionLabel.toUpperCase()}</Text>
                                 <View style={[s.displayField, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                                     <Text style={[s.value, { color: c.muted, fontSize: 14 }]}>
                                         {sub.description || (isTR ? 'Açıklama eklenmemiş.' : 'No description added.')}
                                     </Text>
                                 </View>
-                            )}
+                            </View>
                         </View>
-                    </View>
+                    )}
 
-                    {/* Actions */}
                     {isEditing ? (
-                        <TouchableOpacity onPress={handleSave} style={[s.saveBtn, { backgroundColor: c.emerald }]} activeOpacity={0.8}>
-                            <Save size={18} color="#0F1419" />
-                            <Text style={s.saveText}>{t.saveChanges}</Text>
-                        </TouchableOpacity>
+                        <View style={{ gap: 12, marginTop: 12 }}>
+                            <TouchableOpacity onPress={handleSave} style={[s.saveBtn, { backgroundColor: c.emerald }]} activeOpacity={0.8}>
+                                <Save size={18} color="#0F1419" />
+                                <Text style={s.saveText}>{t.saveChanges}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleDelete} style={[s.deleteBtn, { backgroundColor: c.red + '10', borderColor: c.red + '25' }]} activeOpacity={0.8}>
+                                <Trash2 size={18} color={c.red} />
+                                <Text style={[s.deleteText, { color: c.red }]}>{t.deleteSubscription}</Text>
+                            </TouchableOpacity>
+                        </View>
                     ) : (
-                        <TouchableOpacity onPress={handleDelete} style={[s.deleteBtn, { backgroundColor: c.red + '10', borderColor: c.red + '25' }]} activeOpacity={0.8}>
+                        <TouchableOpacity onPress={handleDelete} style={[s.deleteBtn, { backgroundColor: c.red + '10', borderColor: c.red + '25', marginTop: 12 }]} activeOpacity={0.8}>
                             <Trash2 size={18} color={c.red} />
                             <Text style={[s.deleteText, { color: c.red }]}>{t.deleteSubscription}</Text>
                         </TouchableOpacity>
@@ -394,47 +329,6 @@ const s = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
     },
-
-    /* Hero */
-    heroCard: {
-        alignItems: 'center',
-        padding: 28,
-        borderRadius: 20,
-        marginBottom: 16,
-        borderWidth: 1,
-    },
-    iconCircle: {
-        width: 64,
-        height: 64,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    emoji: {
-        fontSize: 28,
-    },
-    heroName: {
-        fontSize: 22,
-        fontWeight: '700',
-        marginBottom: 6,
-        letterSpacing: -0.3,
-    },
-    heroAmountRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        marginBottom: 12,
-    },
-    heroAmount: {
-        fontSize: 28,
-        fontWeight: '700',
-        letterSpacing: -0.5,
-    },
-    heroCycle: {
-        fontSize: 14,
-        fontWeight: '600',
-        paddingBottom: 4,
-    },
     duePill: {
         paddingHorizontal: 14,
         paddingVertical: 6,
@@ -458,8 +352,6 @@ const s = StyleSheet.create({
         fontSize: 14,
         fontWeight: '800',
     },
-
-    /* Mark Paid */
     markPaidBtn: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -474,25 +366,6 @@ const s = StyleSheet.create({
         fontSize: 15,
         fontWeight: '700',
     },
-
-    /* Info */
-    infoCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        gap: 10,
-        marginBottom: 24,
-        borderWidth: 1,
-    },
-    infoText: {
-        fontSize: 13,
-        fontWeight: '500',
-        flex: 1,
-    },
-
-    /* Form */
     form: {
         gap: 20,
         marginBottom: 24,
@@ -510,24 +383,11 @@ const s = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
-    inputWrap: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-    },
-    input: {
-        flex: 1,
-        fontSize: 16,
-    },
     displayField: {
         borderRadius: 12,
         borderWidth: 1,
         padding: 16,
     },
-
     cycleRow: {
         flexDirection: 'row',
         gap: 12,
@@ -546,7 +406,6 @@ const s = StyleSheet.create({
         fontWeight: '700',
         fontSize: 13,
     },
-
     catChip: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -561,8 +420,6 @@ const s = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
     },
-
-    /* Actions */
     deleteBtn: {
         flexDirection: 'row',
         alignItems: 'center',

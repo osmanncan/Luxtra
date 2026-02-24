@@ -1,14 +1,31 @@
 import { Subscription, Task } from '../store/useStore';
 
-// Using free Gemini API (Google AI)
-// You can get a free API key from: https://aistudio.google.com/app/apikey
-const GEMINI_API_KEY = 'AIzaSyDummyKeyReplace'; // Replace with your key
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+// AI Service Configuration
+const AI_PROVIDER: 'gemini' | 'grok' = 'grok'; // Buradan sağlayıcıyı değiştirebilirsin
+
+const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+const GROK_API_KEY = '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'; // <--- BURAYA GROK API ANAHTARINI YAPIŞTIR
+
+const API_CONFIG = {
+    gemini: {
+        url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+        method: 'POST'
+    },
+    grok: {
+        url: 'https://api.x.ai/v1/chat/completions',
+        method: 'POST',
+        model: 'grok-beta',
+        headers: {
+            'Authorization': `Bearer ${GROK_API_KEY}`,
+            'Content-Type': 'application/json'
+        }
+    }
+};
 
 interface AIContext {
     subscriptions: Subscription[];
     tasks: Task[];
-    language: 'en' | 'tr';
+    language: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar';
 }
 
 function buildPrompt(context: AIContext, userQuestion?: string): string {
@@ -36,9 +53,18 @@ function buildPrompt(context: AIContext, userQuestion?: string): string {
 
     const recurringTasks = tasks.filter(t => t.isRecurring);
 
-    const langInstructions = language === 'tr'
-        ? 'IMPORTANT: Respond entirely in Turkish. Be warm and personal. Give a UNIQUE angle every time — vary between financial savings tips, responsibility management, habit forming, or motivational nudges. Never repeat the same advice.'
-        : 'Respond in English. Be warm and personal. Give a UNIQUE angle every time — vary between financial savings tips, responsibility management, habit forming, or motivational nudges. Never repeat the same advice.';
+    const langNames = {
+        en: 'English',
+        tr: 'Turkish',
+        es: 'Spanish',
+        de: 'German',
+        fr: 'French',
+        it: 'Italian',
+        pt: 'Portuguese',
+        ar: 'Arabic'
+    };
+
+    const langInstructions = `IMPORTANT: Respond ENTIRELY in ${langNames[language]}. Be warm and personal. Give a UNIQUE angle every time — vary between financial savings tips, responsibility management, habit forming, or motivational nudges. Never repeat the same advice.`;
 
     const systemPrompt = `You are LifeOS AI assistant. You help users manage their life — subscriptions, responsibilities, and spending.
 ${langInstructions}
@@ -77,35 +103,38 @@ export async function getAIInsight(context: AIContext, userQuestion?: string): P
     const prompt = buildPrompt(context, userQuestion);
 
     try {
-        const response = await fetch(GEMINI_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }],
-                generationConfig: {
-                    temperature: 0.95,
-                    maxOutputTokens: 200,
-                    topP: 0.9,
-                },
-            }),
-        });
+        if (AI_PROVIDER === 'gemini') {
+            const response = await fetch(API_CONFIG.gemini.url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.95, maxOutputTokens: 200, topP: 0.9 },
+                }),
+            });
 
-        if (!response.ok) {
-            return generateLocalInsight(context);
+            if (!response.ok) return generateLocalInsight(context);
+            const data = await response.json();
+            return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || generateLocalInsight(context);
+        } else {
+            // Grok (xAI) Integration
+            const response = await fetch(API_CONFIG.grok.url, {
+                method: 'POST',
+                headers: API_CONFIG.grok.headers,
+                body: JSON.stringify({
+                    model: API_CONFIG.grok.model,
+                    messages: [
+                        { role: 'system', content: 'You are a helpful life assistant.' },
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: 0.8,
+                }),
+            });
+
+            if (!response.ok) return generateLocalInsight(context);
+            const data = await response.json();
+            return data?.choices?.[0]?.message?.content?.trim() || generateLocalInsight(context);
         }
-
-        const data = await response.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (!text) {
-            return generateLocalInsight(context);
-        }
-
-        return text.trim();
     } catch (_error) {
         return generateLocalInsight(context);
     }

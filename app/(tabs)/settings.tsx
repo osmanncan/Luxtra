@@ -2,34 +2,34 @@ import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useRouter } from 'expo-router';
 import {
-    AlertTriangle,
-    Bell,
-    Brain,
-    ChevronRight,
-    CreditCard,
-    Globe,
-    Layers,
-    Lock,
-    LogOut,
-    Moon,
-    Palette,
-    Shield,
-    Sun,
-    Unlock,
-    User,
-    Wallet
+  AlertTriangle,
+  Bell,
+  Brain,
+  ChevronRight,
+  CreditCard,
+  Globe,
+  Layers,
+  Lock,
+  LogOut,
+  Moon,
+  Palette,
+  Shield,
+  Sun,
+  Unlock,
+  User,
+  Wallet
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useThemeColors } from '../../src/store/theme';
 import { translations } from '../../src/store/translations';
@@ -64,7 +64,7 @@ export default function SettingsScreen() {
   const handleSignOut = () => {
     Alert.alert(t.signOut, t.signOutConfirm, [
       { text: isTR ? 'İptal' : 'Cancel', style: 'cancel' },
-      { text: t.signOut, style: 'destructive', onPress: () => { logout(); router.replace('/login' as any); } },
+      { text: t.signOut, style: 'destructive', onPress: () => { logout(); } },
     ]);
   };
 
@@ -154,12 +154,26 @@ export default function SettingsScreen() {
         <Text style={[s.sectionLabel, { color: c.subtle }]}>{t.appSettings}</Text>
         <View style={[s.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
           {/* Language */}
-          <TouchableOpacity style={s.settingRow} onPress={() => { tap(); setLanguage(language === 'en' ? 'tr' : 'en'); }}>
+          <TouchableOpacity style={s.settingRow} onPress={() => {
+            tap();
+            const langs: Array<'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar'> = ['en', 'tr', 'es', 'de', 'fr', 'it', 'pt', 'ar'];
+            const idx = langs.indexOf(language);
+            setLanguage(langs[(idx + 1) % langs.length]);
+          }}>
             <View style={[s.settingIcon, { backgroundColor: c.blue + '15' }]}>
               <Globe size={18} color={c.blue} />
             </View>
             <Text style={[s.settingText, { color: c.offWhite }]}>{t.language}</Text>
-            <Text style={[s.settingValue, { color: c.muted }]}>{language === 'tr' ? 'Türkçe' : 'English'}</Text>
+            <Text style={[s.settingValue, { color: c.muted }]}>
+              {language === 'tr' ? 'Türkçe' :
+                language === 'en' ? 'English' :
+                  language === 'es' ? 'Español' :
+                    language === 'de' ? 'Deutsch' :
+                      language === 'fr' ? 'Français' :
+                        language === 'it' ? 'Italiano' :
+                          language === 'pt' ? 'Português' :
+                            language === 'ar' ? 'العربية' : language}
+            </Text>
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 

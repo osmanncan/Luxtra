@@ -8,9 +8,9 @@ import { LogBox } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { useColorScheme } from '@/components/useColorScheme';
 import * as QuickActions from 'expo-quick-actions';
 import { useQuickActionRouting } from 'expo-quick-actions/router';
+import { useColorScheme } from 'react-native';
 import "../global.css";
 import BiometricAuth from '../src/components/BiometricAuth';
 import { useStore } from '../src/store/useStore';
@@ -71,28 +71,31 @@ export default function RootLayout() {
     if (error) throw error;
   }, [error]);
 
+  const splashHidden = React.useRef(false);
+
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-      setIsReady(true);
+    async function hideSplashScreen() {
+      if (loaded && !splashHidden.current) {
+        try {
+          // Delaying hideAsync by 100ms often resolves "No native splash screen" errors 
+          // that happen during rapid navigation or initialization.
+          await new Promise(resolve => setTimeout(resolve, 100));
+          await SplashScreen.hideAsync();
+        } catch (e) {
+          // Ignore errors like "No native splash screen"
+        } finally {
+          splashHidden.current = true;
+          setIsReady(true);
+        }
+      }
     }
+    hideSplashScreen();
   }, [loaded]);
 
   useEffect(() => {
     if (!isReady) return;
-
-    // Check if user is in an authentication group or onboarding
-    const segment = segments[0] as string;
-    const inAuthGroup = segment === '(auth)' || segment === 'login' || segment === 'onboarding' || segment === 'register';
-
-    if (!user && !inAuthGroup) {
-      // Redirect to onboarding if not authenticated
-      router.replace('/onboarding' as any);
-    } else if (user && (segment === 'login' || segment === 'onboarding')) {
-      // Redirect to tabs if authenticated
-      router.replace('/(tabs)');
-    }
-  }, [user, segments, isReady]);
+    // Otomatik yönlendirme kaldırıldı, uygulama direkt (tabs) içinden başlar.
+  }, [isReady]);
 
   if (!loaded) {
     return null;

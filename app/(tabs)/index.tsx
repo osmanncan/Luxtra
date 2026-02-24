@@ -1,10 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import {
-  AlertTriangle,
   ArrowRight,
   Brain,
-  ChevronRight,
   Crown,
   Shield,
 } from 'lucide-react-native';
@@ -19,10 +17,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SmartInsight } from '../../src/components/home/SmartInsight';
+import { SpendingCard } from '../../src/components/home/SpendingCard';
+import { UpcomingItem } from '../../src/components/home/UpcomingItem';
 import { FREE_LIMITS } from '../../src/store/proFeatures';
 import { useThemeColors } from '../../src/store/theme';
 import { translations } from '../../src/store/translations';
-import { CURRENCIES, SUB_CATEGORIES, useStore } from '../../src/store/useStore';
+import { CURRENCIES, useStore } from '../../src/store/useStore';
 
 export default function OverviewScreen() {
   const router = useRouter();
@@ -43,22 +44,15 @@ export default function OverviewScreen() {
     ]).start();
   }, []);
 
-  // Greeting
   const hour = new Date().getHours();
   const greeting = hour < 12 ? t.greeting.morning : hour < 18 ? t.greeting.afternoon : t.greeting.evening;
 
-  // Monthly spending
   const totalMonthly = subscriptions.reduce((sum, s) => {
     return sum + (s.billingCycle === 'yearly' ? s.amount / 12 : s.amount);
   }, 0);
 
   const totalItems = subscriptions.length + tasks.length;
 
-  // Budget progress
-  const budgetPct = monthlyBudget > 0 ? Math.min((totalMonthly / monthlyBudget) * 100, 100) : 0;
-  const isOverBudget = monthlyBudget > 0 && totalMonthly > monthlyBudget;
-
-  // Upcoming items (next 7 days)
   const now = new Date();
   const upcoming = [
     ...tasks.filter(t_ => !t_.isCompleted).map(t_ => ({
@@ -84,7 +78,6 @@ export default function OverviewScreen() {
     return t.home.inDays.replace('{days}', diff.toString());
   };
 
-  // Top spending category
   const topCategory = subscriptions.reduce<{ name: string; total: number } | null>((best, sub) => {
     const monthlyAmt = sub.billingCycle === 'yearly' ? sub.amount / 12 : sub.amount;
     if (!best || monthlyAmt > best.total) return { name: sub.name, total: monthlyAmt };
@@ -101,7 +94,6 @@ export default function OverviewScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-          {/* Header */}
           <View style={s.header}>
             <View>
               <Text style={[s.greeting, { color: c.subtle }]}>{greeting}</Text>
@@ -116,7 +108,6 @@ export default function OverviewScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Tracking Summary */}
           <View style={[s.trackCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
             <View style={s.trackRow}>
               <View style={[s.trackIcon, { backgroundColor: c.emerald + '15' }]}>
@@ -136,64 +127,23 @@ export default function OverviewScreen() {
             </View>
           </View>
 
-          {/* ── SPENDING CARD ── */}
-          <TouchableOpacity
-            style={[s.spendCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}
-            activeOpacity={0.7}
+          <SpendingCard
+            totalMonthly={totalMonthly}
+            monthlyBudget={monthlyBudget}
+            isPro={isPro}
+            currencySymbol={curr.symbol}
+            labels={{
+              monthlySpending: t.home.monthlySpending,
+              details: t.home.details,
+              overBudget: t.home.overBudget,
+              remaining: t.home.remaining,
+              budget: t.home.budget,
+            }}
             onPress={() => { handlePress(); router.push('/(tabs)/spending'); }}
-          >
-            <Text style={[s.spendLabel, { color: c.subtle }]}>{t.home.monthlySpending}</Text>
-            <View style={s.spendRow}>
-              <Text style={[s.spendAmount, { color: c.offWhite }]}>
-                {curr.symbol}{totalMonthly.toFixed(2)}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={[s.spendDetails, { color: c.emerald }]}>{t.home.details}</Text>
-                <ChevronRight size={14} color={c.emerald} />
-              </View>
-            </View>
+            colors={c}
+            subscriptions={subscriptions}
+          />
 
-            {/* Budget Progress — Pro only */}
-            {monthlyBudget > 0 && isPro && (
-              <View style={s.budgetSection}>
-                <View style={[s.budgetBar, { backgroundColor: c.cardBorder }]}>
-                  <View
-                    style={[
-                      s.budgetFill,
-                      {
-                        width: `${budgetPct}%`,
-                        backgroundColor: isOverBudget ? c.red : c.emerald,
-                      },
-                    ]}
-                  />
-                </View>
-                <View style={s.budgetMeta}>
-                  <Text style={[s.budgetText, { color: isOverBudget ? c.red : c.subtle }]}>
-                    {isOverBudget ? t.home.overBudget : `${curr.symbol}${(monthlyBudget - totalMonthly).toFixed(0)} ${t.home.remaining}`}
-                  </Text>
-                  <Text style={[s.budgetTarget, { color: c.dim }]}>
-                    {t.home.budget}: {curr.symbol}{monthlyBudget.toFixed(0)}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Category breakdown mini */}
-            <View style={s.catRow}>
-              {subscriptions.slice(0, 4).map(sub => {
-                const cat = SUB_CATEGORIES[sub.category] ?? SUB_CATEGORIES.General;
-                const pct = totalMonthly > 0 ? ((sub.billingCycle === 'yearly' ? sub.amount / 12 : sub.amount) / totalMonthly * 100) : 0;
-                return (
-                  <View key={sub.id} style={[s.catPill, { backgroundColor: c.cardBorder }]}>
-                    <Text style={{ fontSize: 12 }}>{cat.emoji}</Text>
-                    <Text style={[s.catPct, { color: c.muted }]}>{pct.toFixed(0)}%</Text>
-                  </View>
-                );
-              })}
-            </View>
-          </TouchableOpacity>
-
-          {/* ── UPCOMING ── */}
           <View style={s.sectionHeader}>
             <Text style={[s.sectionTitle, { color: c.offWhite }]}>{t.home.comingUp}</Text>
             <TouchableOpacity onPress={() => { handlePress(); router.push('/(tabs)/timeline'); }}>
@@ -205,42 +155,20 @@ export default function OverviewScreen() {
             upcoming.map(item => {
               const d = new Date(item.date);
               const diff = Math.ceil((d.getTime() - now.getTime()) / 86400000);
-              const isOverdue = diff < 0;
-              const isToday = diff === 0;
-
               return (
-                <TouchableOpacity
+                <UpcomingItem
                   key={`${item.kind}-${item.id}`}
-                  style={[s.upcomingCard, { backgroundColor: c.card, borderColor: isOverdue ? c.red + '40' : isToday ? c.amber + '40' : c.cardBorder }]}
-                  activeOpacity={0.7}
+                  item={item}
+                  daysLabel={getDaysLabel(item.date)}
+                  isOverdue={diff < 0}
+                  isToday={diff === 0}
+                  currencySymbol={curr.symbol}
                   onPress={() => {
                     handlePress();
                     if (item.kind === 'payment') router.push(`/subscription/${item.id}`);
                   }}
-                >
-                  <Text style={{ fontSize: 16 }}>
-                    {item.kind === 'payment' ? '💳' : '📌'}
-                  </Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[s.upcomingTitle, { color: c.offWhite }]}>{item.title}</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={[s.upcomingDate, { color: isOverdue ? c.red : isToday ? c.amber : c.subtle }]}>
-                        {getDaysLabel(item.date)}
-                      </Text>
-                      {'isRecurring' in item && item.isRecurring && (
-                        <View style={[s.recurBadge, { backgroundColor: c.blue + '15' }]}>
-                          <Text style={[s.recurText, { color: c.blue }]}>↻</Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                  {'amount' in item && (
-                    <Text style={[s.upcomingAmount, { color: c.offWhite }]}>
-                      {curr.symbol}{(item as any).amount.toFixed(2)}
-                    </Text>
-                  )}
-                  {isOverdue && <AlertTriangle size={16} color={c.red} />}
-                </TouchableOpacity>
+                  colors={c}
+                />
               );
             })
           ) : (
@@ -251,30 +179,16 @@ export default function OverviewScreen() {
             </View>
           )}
 
-          {/* ── SMART INSIGHT ── */}
           {topCategory && (
-            <View style={[s.insightCard, { backgroundColor: c.emerald + '08', borderColor: c.emerald + '20' }]}>
-              <View style={s.insightHeader}>
-                <Brain size={16} color={c.emerald} />
-                <Text style={[s.insightTitle, { color: c.emerald }]}>{t.home.smartInsight}</Text>
-              </View>
-              <Text style={[s.insightBody, { color: c.muted }]}>
-                {t.home.biggestSpend} <Text style={{ fontWeight: '700', color: c.offWhite }}>{topCategory.name}</Text> ({curr.symbol}{topCategory.total.toFixed(2)}/{isTR ? 'ay' : 'mo'}). {t.home.willNotify}
-              </Text>
-              <TouchableOpacity
-                style={s.insightBtn}
-                activeOpacity={0.7}
-                onPress={() => { handlePress(); router.push('/ai-insights' as any); }}
-              >
-                <Text style={[s.insightBtnText, { color: c.emerald }]}>
-                  {isTR ? 'Daha fazla öneri al' : 'Get more insights'}
-                </Text>
-                <ArrowRight size={14} color={c.emerald} />
-              </TouchableOpacity>
-            </View>
+            <SmartInsight
+              title={t.home.smartInsight}
+              body={`${t.home.biggestSpend} ${topCategory.name} (${curr.symbol}${topCategory.total.toFixed(2)}/${isTR ? 'ay' : 'mo'}). ${t.home.willNotify}`}
+              buttonLabel={isTR ? 'Daha fazla öneri al' : 'Get more insights'}
+              onPress={() => { handlePress(); router.push('/ai-insights' as any); }}
+              colors={c}
+            />
           )}
 
-          {/* ── UPGRADE BANNER (Free users only) ── */}
           {!isPro && (
             <TouchableOpacity
               style={[s.upgradeCard, { backgroundColor: c.emerald + '10', borderColor: c.emerald + '25' }]}

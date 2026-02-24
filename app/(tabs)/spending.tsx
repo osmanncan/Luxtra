@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import {
   AlertTriangle,
   BarChart3,
-  Check,
   CreditCard,
   Plus,
   Search,
@@ -23,6 +22,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SpendingInsight } from '../../src/components/spending/SpendingInsight';
+import { SubscriptionItem } from '../../src/components/spending/SubscriptionItem';
+import { SummaryCard } from '../../src/components/spending/SummaryCard';
+import { UpcomingPayment } from '../../src/components/spending/UpcomingPayment';
 import SwipeableRow from '../../src/components/SwipeableRow';
 import { FREE_LIMITS } from '../../src/store/proFeatures';
 import { useThemeColors } from '../../src/store/theme';
@@ -125,138 +128,66 @@ export default function SpendingScreen() {
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140 }}
           ListHeaderComponent={
             <View>
-              {/* Spending Card */}
-              <View style={[s.spendCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                <View style={s.spendAmountRow}>
-                  <View>
-                    <Text style={[s.spendLabel, { color: c.subtle }]}>{t.monthlyTotal}</Text>
-                    <Text style={[s.spendAmount, { color: c.offWhite }]}>{curr.symbol}{totalAll.toFixed(2)}</Text>
-                  </View>
-                  <View style={s.spendRight}>
-                    <Text style={[s.spendLabel, { color: c.subtle }]}>{t.perYear}</Text>
-                    <Text style={[s.spendAnnual, { color: c.muted }]}>{curr.symbol}{annualized.toFixed(0)}</Text>
-                  </View>
-                </View>
+              <SummaryCard
+                totalAll={totalAll}
+                annualized={annualized}
+                monthlyBudget={monthlyBudget}
+                isPro={isPro}
+                currencySymbol={curr.symbol}
+                labels={{
+                  monthlyTotal: t.monthlyTotal,
+                  perYear: t.perYear,
+                  budget: translations[language].home.budget,
+                }}
+                colors={c}
+                subscriptions={subscriptions}
+                categories={categories}
+              />
 
-                {/* Budget Progress — Pro only */}
-                {monthlyBudget > 0 && isPro && (
-                  <View style={s.budgetRow}>
-                    <View style={[s.budgetBar, { backgroundColor: c.cardBorder }]}>
-                      <View style={[s.budgetFill, {
-                        width: `${Math.min((totalAll / monthlyBudget) * 100, 100)}%`,
-                        backgroundColor: totalAll > monthlyBudget ? c.red : c.emerald,
-                      }]} />
-                    </View>
-                    <Text style={[s.budgetLabel, { color: totalAll > monthlyBudget ? c.red : c.subtle }]}>
-                      {curr.symbol}{totalAll.toFixed(0)} / {curr.symbol}{monthlyBudget.toFixed(0)}
-                    </Text>
-                  </View>
-                )}
-
-                {/* Bar Chart */}
-                <View style={[s.barContainer, { backgroundColor: c.cardBorder }]}>
-                  {subscriptions.map((sub, i) => {
-                    const cat = SUB_CATEGORIES[sub.category] ?? SUB_CATEGORIES.General;
-                    const monthlyAmt = sub.billingCycle === 'yearly' ? sub.amount / 12 : sub.amount;
-                    const pct = totalAll > 0 ? (monthlyAmt / totalAll) * 100 : 0;
-                    return (
-                      <View key={sub.id} style={[s.barSegment, {
-                        width: `${Math.max(pct, 2)}%`,
-                        backgroundColor: cat.colors[0],
-                        borderTopLeftRadius: i === 0 ? 6 : 0,
-                        borderBottomLeftRadius: i === 0 ? 6 : 0,
-                        borderTopRightRadius: i === subscriptions.length - 1 ? 6 : 0,
-                        borderBottomRightRadius: i === subscriptions.length - 1 ? 6 : 0,
-                      }]} />
-                    );
-                  })}
-                </View>
-
-                <View style={s.catRow}>
-                  {categories.map(([cat, data]) => {
-                    const catConfig = SUB_CATEGORIES[cat] ?? SUB_CATEGORIES.General;
-                    return (
-                      <View key={cat} style={[s.catPill, { backgroundColor: c.cardBorder }]}>
-                        <View style={[s.catDot, { backgroundColor: catConfig.colors[0] }]} />
-                        <Text style={[s.catText, { color: c.muted }]}>{catConfig.emoji} {cat}</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Text style={[s.catAmount, { color: c.offWhite }]}>{curr.symbol}{data.total.toFixed(0)}</Text>
-                          <TrendingUp size={10} color={data.total > 500 ? c.red : c.emerald} />
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Analytics Section - New */}
               <View style={s.analyticsContainer}>
                 <Text style={[s.sectionLabel, { color: c.subtle }]}>{t.insightsTitle}</Text>
                 <View style={s.insightsRow}>
-                  {/* Trend Insight */}
-                  <View style={[s.insightSmallCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                    <View style={[s.insightIconCircle, { backgroundColor: totalAll > 1000 ? c.red + '15' : c.emerald + '15' }]}>
-                      {totalAll > 1000 ? (
-                        <TrendingUp size={18} color={c.red} />
-                      ) : (
-                        <TrendingDown size={18} color={c.emerald} />
-                      )}
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[s.insightValue, { color: c.offWhite }]}>
-                        {totalAll > 1000 ? '+12.4%' : '-5.2%'}
-                      </Text>
-                      <Text style={[s.insightDesc, { color: c.muted }]}>
-                        {totalAll > 1000
-                          ? t.trendMore.replace('{percent}', '12.4')
-                          : t.trendLess.replace('{percent}', '5.2')}
-                      </Text>
-                    </View>
-                  </View>
+                  <SpendingInsight
+                    icon={totalAll > 1000 ? TrendingUp : TrendingDown}
+                    iconColor={totalAll > 1000 ? c.red : c.emerald}
+                    bgColor={totalAll > 1000 ? c.red + '15' : c.emerald + '15'}
+                    value={totalAll > 1000 ? '+12.4%' : '-5.2%'}
+                    description={totalAll > 1000 ? t.trendMore.replace('{percent}', '12.4') : t.trendLess.replace('{percent}', '5.2')}
+                    colors={c}
+                  />
 
-                  {/* Category Insight */}
                   {categories.length > 0 && (
-                    <View style={[s.insightSmallCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                      <View style={[s.insightIconCircle, { backgroundColor: c.amber + '15' }]}>
-                        <BarChart3 size={18} color={c.amber} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[s.insightValue, { color: c.offWhite }]}>
-                          {SUB_CATEGORIES[categories[0][0]]?.emoji} {categories[0][0]}
-                        </Text>
-                        <Text style={[s.insightDesc, { color: c.muted }]}>
-                          {t.categoryTrend.replace('{category}', categories[0][0])}
-                        </Text>
-                      </View>
-                    </View>
+                    <SpendingInsight
+                      icon={BarChart3}
+                      iconColor={c.amber}
+                      bgColor={c.amber + '15'}
+                      value={`${SUB_CATEGORIES[categories[0][0]]?.emoji || '💰'} ${categories[0][0]}`}
+                      description={t.categoryTrend.replace('{category}', categories[0][0])}
+                      colors={c}
+                    />
                   )}
                 </View>
               </View>
 
-              {/* Upcoming */}
               {upcomingPayments.length > 0 && (
                 <View style={[s.upcomingSection, { backgroundColor: c.card, borderColor: c.amber + '25' }]}>
                   <View style={s.upcomingHeader}>
                     <AlertTriangle size={14} color={c.amber} />
                     <Text style={[s.upcomingTitle, { color: c.amber }]}>{t.upcomingPayments}</Text>
                   </View>
-                  {upcomingPayments.map(sub => {
-                    const cat = SUB_CATEGORIES[sub.category] ?? SUB_CATEGORIES.General;
-                    return (
-                      <View key={sub.id} style={[s.upcomingItem, { borderTopColor: c.cardBorder + '30' }]}>
-                        <Text style={{ fontSize: 16 }}>{cat.emoji}</Text>
-                        <View style={{ flex: 1 }}>
-                          <Text style={[s.upcomingName, { color: c.offWhite }]}>{sub.name}</Text>
-                          <Text style={[s.upcomingDate, { color: c.amber }]}>{getDaysLeft(sub.nextBillingDate)}</Text>
-                        </View>
-                        <Text style={[s.upcomingAmount, { color: c.offWhite }]}>{curr.symbol}{sub.amount.toFixed(2)}</Text>
-                      </View>
-                    );
-                  })}
+                  {upcomingPayments.map(sub => (
+                    <UpcomingPayment
+                      key={sub.id}
+                      emoji={SUB_CATEGORIES[sub.category]?.emoji || '💳'}
+                      name={sub.name}
+                      daysLeft={getDaysLeft(sub.nextBillingDate)}
+                      amount={`${curr.symbol}${sub.amount.toFixed(2)}`}
+                      colors={c}
+                    />
+                  ))}
                 </View>
               )}
 
-              {/* Search */}
               <View style={[s.searchWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                 <Search size={16} color={c.dim} />
                 <TextInput
@@ -268,7 +199,6 @@ export default function SpendingScreen() {
                 />
               </View>
 
-              {/* Free tier slot counter */}
               {!isPro && (
                 <View style={[s.slotBanner, { backgroundColor: c.amber + '10', borderColor: c.amber + '25' }]}>
                   <Text style={[s.slotText, { color: c.amber }]}>
@@ -284,7 +214,6 @@ export default function SpendingScreen() {
                 </View>
               )}
 
-              {/* Swipe hint */}
               <Text style={[s.swipeHint, { color: c.dim }]}>
                 ← {isTR ? 'Silmek için sola kaydır' : 'Swipe left to delete'}
               </Text>
@@ -292,54 +221,18 @@ export default function SpendingScreen() {
               <Text style={[s.listHeader, { color: c.offWhite }]}>{t.allSubscriptions}</Text>
             </View>
           }
-          renderItem={({ item }) => {
-            const cat = SUB_CATEGORIES[item.category] ?? SUB_CATEGORIES.General;
-            const nextDate = new Date(item.nextBillingDate);
-            const diffDays = Math.ceil((nextDate.getTime() - Date.now()) / 86400000);
-            const isUpcoming = diffDays >= 0 && diffDays <= 3;
-
-            return (
-              <SwipeableRow onDelete={() => handleDelete(item.id, item.name)} deleteColor={c.red}>
-                <TouchableOpacity
-                  style={[s.subCard, {
-                    backgroundColor: c.card,
-                    borderColor: item.isPaid ? c.emerald + '40' : isUpcoming ? c.amber + '40' : c.cardBorder,
-                  }]}
-                  activeOpacity={0.7}
-                  onPress={() => router.push(`/subscription/${item.id}`)}
-                >
-                  <View style={[s.subIcon, { backgroundColor: cat.colors[0] + '20' }]}>
-                    <Text style={{ fontSize: 20 }}>{cat.emoji}</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={[s.subName, { color: c.offWhite }]}>{item.name}</Text>
-                      {item.isPaid && (
-                        <View style={[s.paidBadge, { backgroundColor: c.emerald + '18' }]}>
-                          <Check size={10} color={c.emerald} strokeWidth={3} />
-                          <Text style={[s.paidText, { color: c.emerald }]}>{isTR ? 'Ödendi' : 'Paid'}</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={[s.subMeta, { color: c.subtle }]}>
-                      {item.billingCycle === 'monthly' ? (isTR ? 'Aylık' : 'Monthly') : (isTR ? 'Yıllık' : 'Yearly')} · {nextDate.toLocaleDateString(isTR ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric' })}
-                    </Text>
-                  </View>
-                  <View style={s.subRight}>
-                    <Text style={[s.subAmount, { color: c.offWhite }]}>{curr.symbol}{item.amount.toFixed(2)}</Text>
-                    <Text style={[s.subCycle, { color: c.subtle }]}>/{item.billingCycle === 'monthly' ? (isTR ? 'ay' : 'mo') : (isTR ? 'yıl' : 'yr')}</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={[s.payBtn, { backgroundColor: item.isPaid ? c.emerald : 'transparent', borderColor: item.isPaid ? c.emerald : c.cardBorder }]}
-                    onPress={() => handleMarkPaid(item.id)}
-                    activeOpacity={0.7}
-                  >
-                    <Check size={14} color={item.isPaid ? '#FFF' : c.dim} strokeWidth={2.5} />
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              </SwipeableRow>
-            );
-          }}
+          renderItem={({ item }) => (
+            <SwipeableRow onDelete={() => handleDelete(item.id, item.name)} deleteColor={c.red}>
+              <SubscriptionItem
+                item={item}
+                isTR={isTR}
+                currencySymbol={curr.symbol}
+                onPress={() => router.push(`/subscription/${item.id}`)}
+                onMarkPaid={() => handleMarkPaid(item.id)}
+                colors={c}
+              />
+            </SwipeableRow>
+          )}
           ListEmptyComponent={
             <View style={[s.empty, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
               <CreditCard size={32} color={c.dim} />

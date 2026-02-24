@@ -26,7 +26,7 @@ import {
 import { getAIInsight } from '../src/services/aiService';
 import { useThemeColors } from '../src/store/theme';
 import { translations } from '../src/store/translations';
-import { useStore } from '../src/store/useStore';
+import { CURRENCIES, useStore } from '../src/store/useStore';
 
 export default function AIInsightsScreen() {
     const router = useRouter();
@@ -123,22 +123,22 @@ export default function AIInsightsScreen() {
                     <View style={s.statsRow}>
                         <View style={[s.statCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                             <TrendingUp size={16} color={c.emerald} />
-                            <Text style={[s.statLabel, { color: c.subtle }]}>{language === 'tr' ? 'En Yüksek' : 'Top Spending'}</Text>
+                            <Text style={[s.statLabel, { color: c.subtle }]}>{t.topSpending}</Text>
                             <Text style={[s.statValue, { color: c.offWhite }]}>
                                 {topSub ? `${topSub.name}` : '—'}
                             </Text>
                             <Text style={[s.statAmount, { color: c.emerald }]}>
-                                {topSub ? `$${topSub.amount.toFixed(2)}/mo` : ''}
+                                {topSub ? `${CURRENCIES[currency]?.symbol || '$'}${topSub.amount.toFixed(2)}` : ''}
                             </Text>
                         </View>
                         <View style={[s.statCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                             <Zap size={16} color={c.amber} />
-                            <Text style={[s.statLabel, { color: c.subtle }]}>{language === 'tr' ? 'Tasarruf İpucu' : 'Saving Tip'}</Text>
+                            <Text style={[s.statLabel, { color: c.subtle }]}>{t.savingTip}</Text>
                             <Text style={[s.statValue, { color: c.offWhite }]}>
                                 {sortedCats[0] ? sortedCats[0][0] : '—'}
                             </Text>
                             <Text style={[s.statAmount, { color: c.amber }]}>
-                                {sortedCats[0] ? `$${sortedCats[0][1].toFixed(0)}/mo` : ''}
+                                {sortedCats[0] ? `${CURRENCIES[currency]?.symbol || '$'}${sortedCats[0][1].toFixed(0)}` : ''}
                             </Text>
                         </View>
                     </View>
@@ -165,7 +165,7 @@ export default function AIInsightsScreen() {
                                 >
                                     <RefreshCw size={14} color={c.emerald} />
                                     <Text style={[s.refreshText, { color: c.emerald }]}>
-                                        {language === 'tr' ? 'Yeni Öneri' : 'New Insight'}
+                                        {t.newInsight}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
