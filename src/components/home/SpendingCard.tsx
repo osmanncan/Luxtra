@@ -146,18 +146,20 @@ const s = StyleSheet.create({
     },
     catRow: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         gap: 8,
+        marginTop: 4,
     },
     catPill: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 20,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 16,
     },
     catPct: {
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: '700',
     },
 });

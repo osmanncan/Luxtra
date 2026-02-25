@@ -17,37 +17,39 @@ export const HeroCard = ({ emoji, title, subtitle, colors }: HeroCardProps) => {
     return (
         <View style={[s.heroCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
             <View style={[s.heroIcon, { backgroundColor: colors.cardBorder }]}>
-                <Text style={{ fontSize: 28 }}>{emoji}</Text>
+                <Text style={{ fontSize: 24 }}>{emoji}</Text>
             </View>
-            <Text style={[s.heroTitle, { color: colors.offWhite }]}>{title}</Text>
-            <Text style={[s.heroSub, { color: colors.subtle }]}>{subtitle}</Text>
+            <View style={{ flex: 1 }}>
+                <Text style={[s.heroTitle, { color: colors.offWhite }]}>{title}</Text>
+                <Text style={[s.heroSub, { color: colors.subtle }]}>{subtitle}</Text>
+            </View>
         </View>
     );
 };
 
 const s = StyleSheet.create({
     heroCard: {
+        flexDirection: 'row',
         alignItems: 'center',
         borderRadius: 20,
-        padding: 28,
+        padding: 24,
         borderWidth: 1,
         marginBottom: 28,
+        gap: 16,
     },
     heroIcon: {
-        width: 60,
-        height: 60,
-        borderRadius: 16,
+        width: 52,
+        height: 52,
+        borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
     },
     heroTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '700',
-        marginBottom: 6,
+        marginBottom: 2,
     },
     heroSub: {
-        fontSize: 14,
-        textAlign: 'center',
+        fontSize: 13,
     },
 });

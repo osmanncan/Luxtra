@@ -102,8 +102,6 @@ export default function AddSubscription() {
   const isValid = name.trim() && amount && day;
 
   const handleSave = async () => {
-    if (!isValid) return;
-
     if (!canAddSubscription(subscriptions.length, isPro)) {
       Alert.alert(
         isTR ? 'Limit Aşıldı' : 'Limit Reached',
@@ -118,6 +116,20 @@ export default function AddSubscription() {
       return;
     }
 
+    if (!name.trim()) {
+      Alert.alert(isTR ? 'Hata' : 'Error', isTR ? 'Lütfen bir isim girin' : 'Please enter a name');
+      return;
+    }
+    if (!amount) {
+      Alert.alert(isTR ? 'Hata' : 'Error', isTR ? 'Lütfen tutar girin' : 'Please enter an amount');
+      return;
+    }
+    const dayNum = parseInt(day);
+    if (!day || isNaN(dayNum) || dayNum < 1 || dayNum > 31) {
+      Alert.alert(isTR ? 'Hata' : 'Error', isTR ? 'Lütfen geçerli bir gün (1-31) girin' : 'Please enter a valid day (1-31)');
+      return;
+    }
+
     const today = new Date();
     const nextDate = new Date(today.getFullYear(), today.getMonth(), +day);
     if (nextDate < today) nextDate.setMonth(nextDate.getMonth() + 1);
@@ -125,7 +137,7 @@ export default function AddSubscription() {
     const newId = Date.now().toString();
     const reminderDateValue = reminderType === 'custom' ? getCustomReminderDate()?.toISOString() : undefined;
 
-    addSubscription({
+    await addSubscription({
       id: newId,
       name: name.trim(),
       amount: parseFloat(amount),
@@ -137,34 +149,7 @@ export default function AddSubscription() {
       reminderDate: reminderDateValue,
     });
 
-    let remindDate: Date | null = null;
-    if (reminderType === 'days') {
-      remindDate = new Date(nextDate);
-      remindDate.setDate(remindDate.getDate() - reminderDays);
-    } else if (reminderType === 'months') {
-      remindDate = new Date(nextDate);
-      remindDate.setMonth(remindDate.getMonth() - reminderMonths);
-    } else if (reminderType === 'custom') {
-      remindDate = getCustomReminderDate();
-    }
-
-    if (remindDate) {
-      remindDate.setHours(9, 0, 0, 0);
-    }
-
-    // Schedule Notification using NotificationService
-    if (remindDate && remindDate > new Date()) {
-      const { NotificationService } = require('../src/services/notificationService');
-      await NotificationService.scheduleNotification(
-        newId,
-        isTR ? 'Ödeme Hatırlatması 💸' : 'Payment Reminder 💸',
-        isTR
-          ? `${name.trim()} (${curr.symbol}${amount}) yakında ödenecek!`
-          : `${name.trim()} (${curr.symbol}${amount}) is due soon!`,
-        remindDate,
-        { id: newId, type: 'subscription' }
-      );
-    }
+    import('expo-haptics').then(Haptics => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
 
     router.back();
   };
@@ -206,7 +191,7 @@ export default function AddSubscription() {
             placeholder="0.00"
             keyboardType="decimal-pad"
             value={amount}
-            onChangeText={setAmount}
+            onChangeText={(txt) => setAmount(txt.replace(',', '.'))}
             colors={c}
             icon={<DollarSign size={16} color={c.dim} style={{ marginRight: 12 }} />}
           />

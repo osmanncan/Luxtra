@@ -82,14 +82,19 @@ Eksik / Geliştirilebilir Şeyler
 Login ekranın var ama gerçek bir authentication yok. login('Osmancan', email) diye hardcoded isim yazıyorsun. Şifre bile kontrol edilmiyor — sadece boş mu diye bakılıyor. Bu ekranlar ya kaldırılmalı ya da gerçek bir auth (Firebase Auth, Supabase Auth) entegre edilmeli. Şu haliyle kullanıcıyı yanıltıyor.
 
 
-3. Pro üyelik gerçek değil
-upgradeToPro() sadece isPro: true yapıyor. RevenueCat veya benzeri bir ödeme altyapısı yok. Kullanıcı gerçekten ödeme yapamıyor. Bu haliyle Pro gate'ler sadece kısıtlama gibi hissettiriyor, değer katmıyor.
 
-Dil ve para seçiminde şey açılsın tek tek olmaz Dil seçilince otomatik para da seçilsin
+
+Bu girdigi harcamalar nerde kayit ediliyor telefon dışında 
 Hatırlatma saati otomatik seçilmeli
 Eklemede sıkıntı var eklenmiyor 
+Girişte ki hızlı girş test kullanıcı kısmını kaldır
+Giriş kısmına dil ekle
+Yazılar saga sola kaymış onu düzelt
+Pro kısmına tıklayınca hata alıyorum şuanlık satın almaya kadar gelmeli
+Sorumluluk ve abonelik eklenemiyorum 
+<!-- Ana sayfada ki kutuların bazıları üst üste binmiş -->
 
-YARIN TEST ZAMANI
+Mail bildirimi düzgün olsun
 
 <!-- / 6. Abonelik düzenleme (edit) ekranı yok
 updateSubscription fonksiyonu store'da var ama bunu kullanan bir edit ekranı göremiyorum (subscription/[id].tsx detay sayfası olabilir ama tam bir edit flow eksik gibi).

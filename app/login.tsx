@@ -159,29 +159,6 @@ export default function LoginScreen() {
                             </View>
                         </TouchableOpacity>
 
-                        {/* Divider */}
-                        <View style={s.divider}>
-                            <View style={s.divLine} />
-                            <Text style={s.divText}>
-                                {language === 'tr' ? 'VEYA' : 'OR'}
-                            </Text>
-                            <View style={s.divLine} />
-                        </View>
-
-                        {/* Test User */}
-                        <TouchableOpacity
-                            onPress={handleTestLogin}
-                            activeOpacity={0.8}
-                            disabled={loading}
-                        >
-                            <View style={[s.testBtn, loading && { opacity: 0.7 }]}>
-                                {loading ? (
-                                    <ActivityIndicator color="#10B981" />
-                                ) : (
-                                    <Text style={s.testText}>⚡ {t.testUser}</Text>
-                                )}
-                            </View>
-                        </TouchableOpacity>
                     </Animated.View>
 
                     {/* Footer */}

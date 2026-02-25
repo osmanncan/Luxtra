@@ -75,8 +75,6 @@ export default function AddResponsibility() {
     };
 
     const handleSave = async () => {
-        if (!title.trim()) return;
-
         if (!canAddResponsibility(tasks.length, isPro)) {
             Alert.alert(
                 isTR ? 'Limit Aşıldı' : 'Limit Reached',
@@ -88,6 +86,17 @@ export default function AddResponsibility() {
                     { text: isTR ? 'Pro\'ya Geç' : 'Upgrade', onPress: () => router.push('/modal') },
                 ]
             );
+            return;
+        }
+
+        if (!title.trim()) {
+            Alert.alert(isTR ? 'Hata' : 'Error', isTR ? 'Lütfen bir başlık girin' : 'Please enter a title');
+            return;
+        }
+
+        const days = parseInt(daysDue);
+        if (!daysDue || isNaN(days)) {
+            Alert.alert(isTR ? 'Hata' : 'Error', isTR ? 'Lütfen kaç gün sonra olduğunu girin' : 'Please enter due days');
             return;
         }
 
@@ -111,7 +120,7 @@ export default function AddResponsibility() {
         const newId = Date.now().toString();
         const reminderDateValue = reminderType === 'custom' ? getCustomReminderDate()?.toISOString() : undefined;
 
-        addTask({
+        await addTask({
             id: newId,
             title: title.trim(),
             dueDate: due.toISOString(),
@@ -125,34 +134,6 @@ export default function AddResponsibility() {
         });
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-        // Calculate reminder date
-        let remindDate: Date | null = null;
-        if (reminderType === 'days') {
-            remindDate = new Date(due);
-            remindDate.setDate(remindDate.getDate() - reminderDays);
-        } else if (reminderType === 'months') {
-            remindDate = new Date(due);
-            remindDate.setMonth(remindDate.getMonth() - reminderMonths);
-        } else if (reminderType === 'custom') {
-            remindDate = getCustomReminderDate();
-        }
-
-        if (remindDate) {
-            remindDate.setHours(9, 0, 0, 0);
-        }
-
-        // Schedule Notification using NotificationService
-        if (remindDate && remindDate > new Date()) {
-            const { NotificationService } = require('../src/services/notificationService');
-            await NotificationService.scheduleNotification(
-                newId,
-                isTR ? 'Sorumluluk Hatırlatması 📌' : 'Responsibility Reminder 📌',
-                isTR ? `"${title.trim()}" yaklaşıyor!` : `"${title.trim()}" is coming up!`,
-                remindDate,
-                { id: newId, type: 'responsibility' }
-            );
-        }
 
         router.back();
     };

@@ -44,8 +44,8 @@ export const UpcomingItem = ({
             <Text style={{ fontSize: 16 }}>
                 {item.kind === 'payment' ? '💳' : '📌'}
             </Text>
-            <View style={{ flex: 1 }}>
-                <Text style={[s.title, { color: colors.offWhite }]}>{item.title}</Text>
+            <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={[s.title, { color: colors.offWhite }]} numberOfLines={1}>{item.title}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <Text style={[s.date, { color: isOverdue ? colors.red : isToday ? colors.amber : colors.subtle }]}>
                         {daysLabel}

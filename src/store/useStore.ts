@@ -163,21 +163,34 @@ export const useStore = create<AppState>()(
       setUser: (user) => set({ user }),
 
       login: async (email, password) => {
-        const { supabase } = await import('../services/supabase');
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) return { success: false, error: error.message };
+        const cleanEmail = email?.trim() || '';
+        const cleanPassword = password?.trim() || '';
 
-        // Fetch profile or metadata if needed
+        const { supabase } = await import('../services/supabase');
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: cleanPassword
+        });
+
+        if (error) {
+          let msg = error.message;
+          if (msg === 'Invalid login credentials') {
+            msg = 'E-posta veya şifre hatalı.';
+          } else if (msg.includes('Email not confirmed')) {
+            msg = 'Lütfen e-posta adresinizi onaylayın. Gelen kutunuzu (ve spam klasörünü) kontrol edin.';
+          }
+          return { success: false, error: msg };
+        }
+
+        if (!data.user) return { success: false, error: 'Kullanıcı bulunamadı.' };
+
         const userObj: User = {
           name: data.user.user_metadata.full_name || 'Kullanıcı',
           email: data.user.email!,
-          isPro: false // This will be checked by RevenueCat separately
+          isPro: false
         };
         set({ user: userObj });
-
-        // Use getState to call syncData after login
         await useStore.getState().syncData();
-
         return { success: true };
       },
 
@@ -233,19 +246,32 @@ export const useStore = create<AppState>()(
       },
 
       register: async (name, email, password) => {
+        const cleanEmail = email?.trim() || '';
+        const cleanPassword = password?.trim() || '';
+
         const { supabase } = await import('../services/supabase');
         const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: cleanEmail,
+          password: cleanPassword,
           options: {
             data: { full_name: name },
           },
         });
+
         if (error) return { success: false, error: error.message };
+
+        // If data.user is defined but session is null, it means confirmation is required
+        if (data.user && !data.session) {
+          return {
+            success: true,
+            needsConfirmation: true,
+            message: 'Kayıt başarılı! Lütfen devam etmek için e-postanızı onaylayın.'
+          };
+        }
 
         const userObj: User = {
           name,
-          email,
+          email: cleanEmail,
           isPro: false
         };
         set({ user: userObj });
@@ -423,6 +449,29 @@ export const useStore = create<AppState>()(
           return { subscriptions: newSubs };
         });
 
+        // Notification logic
+        try {
+          const { NotificationService } = await import('../services/notificationService');
+          const billingDate = new Date(sub.nextBillingDate);
+          let remindDate = new Date(billingDate);
+          if (sub.reminderDate) {
+            remindDate = new Date(sub.reminderDate);
+          } else {
+            remindDate.setDate(remindDate.getDate() - (sub.reminderDays || 1));
+          }
+          remindDate.setHours(9, 0, 0, 0);
+
+          if (remindDate > new Date()) {
+            await NotificationService.scheduleNotification(
+              sub.id,
+              'Ödeme Hatırlatması 💸',
+              `${sub.name} yakında ödenecek!`,
+              remindDate,
+              { id: sub.id, type: 'subscription' }
+            );
+          }
+        } catch (e) { console.log('Notification error:', e); }
+
         const { supabase } = await import('../services/supabase');
         const { data: { session } } = await supabase.auth.getSession();
 
@@ -516,6 +565,29 @@ export const useStore = create<AppState>()(
       addTask: async (task) => {
         // First update local state
         set((state) => ({ tasks: [...state.tasks, task] }));
+
+        // Notification logic
+        try {
+          const { NotificationService } = await import('../services/notificationService');
+          const dueDate = new Date(task.dueDate);
+          let remindDate = new Date(dueDate);
+          if (task.reminderDate) {
+            remindDate = new Date(task.reminderDate);
+          } else {
+            remindDate.setDate(remindDate.getDate() - (task.reminderDays || 1));
+          }
+          remindDate.setHours(9, 0, 0, 0);
+
+          if (remindDate > new Date()) {
+            await NotificationService.scheduleNotification(
+              task.id,
+              'Sorumluluk Hatırlatması 📌',
+              `"${task.title}" yaklaşıyor!`,
+              remindDate,
+              { id: task.id, type: 'responsibility' }
+            );
+          }
+        } catch (e) { console.log('Notification error:', e); }
 
         const { supabase } = await import('../services/supabase');
         const { data: { session } } = await supabase.auth.getSession();

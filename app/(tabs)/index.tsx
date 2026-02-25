@@ -95,9 +95,9 @@ export default function OverviewScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
           <View style={s.header}>
-            <View>
-              <Text style={[s.greeting, { color: c.subtle }]}>{greeting}</Text>
-              <Text style={[s.userName, { color: c.offWhite }]}>{user?.name || 'LifeOS'}</Text>
+            <View style={{ flex: 1, marginRight: 12 }}>
+              <Text style={[s.greeting, { color: c.subtle }]}>{greeting},</Text>
+              <Text style={[s.userName, { color: c.offWhite }]} numberOfLines={1}>{user?.name || 'LifeOS'}</Text>
             </View>
             <TouchableOpacity
               style={[s.aiBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}
@@ -113,11 +113,11 @@ export default function OverviewScreen() {
               <View style={[s.trackIcon, { backgroundColor: c.emerald + '15' }]}>
                 <Shield size={20} color={c.emerald} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.trackTitle, { color: c.offWhite }]}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={[s.trackTitle, { color: c.offWhite }]} numberOfLines={1}>
                   {t.home.trackingItems.replace('{count}', totalItems.toString())}
                 </Text>
-                <Text style={[s.trackSub, { color: c.subtle }]}>
+                <Text style={[s.trackSub, { color: c.subtle }]} numberOfLines={1}>
                   {subscriptions.length} {t.home.subscriptions.toLowerCase()} · {tasks.length} {t.home.responsibilities.toLowerCase()}
                 </Text>
               </View>
@@ -413,11 +413,11 @@ const s = StyleSheet.create({
 
   /* Empty */
   emptyCard: {
-    alignItems: 'center',
-    padding: 32,
+    alignItems: 'flex-start',
+    padding: 24,
     borderRadius: 16,
     borderWidth: 1,
-    gap: 6,
+    gap: 4,
   },
   emptyTitle: {
     fontSize: 16,
@@ -431,32 +431,33 @@ const s = StyleSheet.create({
   insightCard: {
     borderRadius: 16,
     padding: 18,
-    marginTop: 16,
+    marginBottom: 20,
     borderWidth: 1,
   },
   insightHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   insightTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
   insightBody: {
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 20,
     fontWeight: '500',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   insightBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    paddingVertical: 4,
   },
   insightBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
 
