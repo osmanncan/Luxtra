@@ -82,7 +82,7 @@ export default function RootLayout() {
           useStore.getState().setUser({
             name: session.user.user_metadata.full_name || 'Kullanıcı',
             email: session.user.email!,
-            isPro: false
+            isPro: false // NORMAL MODE: Pro is turned off by default for testing Paywall
           });
           useStore.getState().syncData();
         } else {
@@ -121,13 +121,14 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isReady) return;
 
-    const inAuthGroup = segments[0] === '(tabs)';
+    const inTabsGroup = segments[0] === '(tabs)';
+    const inAuthGroup = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'onboarding';
 
-    if (!user && inAuthGroup) {
+    if (!user && inTabsGroup) {
       // Giriş yapmamışsa Onboarding/Login ekranına gönder
       router.replace('/onboarding');
-    } else if (user && !inAuthGroup) {
-      // Giriş yapmışsa ama login ekranındaysa tabs'e gönder
+    } else if (user && inAuthGroup) {
+      // Giriş yapmışsa ama login/register/onboarding ekranındaysa tabs'e gönder
       router.replace('/(tabs)');
     }
   }, [isReady, user, segments]);

@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ArrowRight, Globe, Lock, Mail, Shield } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -27,14 +28,15 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [focusedInput, setFocusedInput] = useState<'email' | 'password' | null>(null);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(40)).current;
+    const slideAnim = useRef(new Animated.Value(60)).current;
 
     useEffect(() => {
         Animated.parallel([
-            Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
-            Animated.spring(slideAnim, { toValue: 0, tension: 40, friction: 8, useNativeDriver: true }),
+            Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+            Animated.spring(slideAnim, { toValue: 0, tension: 35, friction: 9, useNativeDriver: true }),
         ]).start();
     }, []);
 
@@ -61,33 +63,27 @@ export default function LoginScreen() {
         }
     };
 
-    const handleTestLogin = async () => {
-        setLoading(true);
-        const result = await login('osmancan@lifeos.app', '123456'); // Example test credentials
-        setLoading(false);
-        if (result.success) {
-            router.replace('/(tabs)');
-        }
-    };
+    const languages = ['en', 'tr', 'es', 'de', 'fr', 'it', 'pt', 'ar'] as const;
 
     const toggleLang = () => {
-        setLanguage(language === 'en' ? 'tr' : 'en');
+        const currIdx = languages.indexOf(language as any);
+        const nextLang = languages[(currIdx + 1) % languages.length];
+        setLanguage(nextLang);
     };
 
     return (
         <View style={s.root}>
             <StatusBar barStyle="light-content" />
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-            >
-                <ScrollView
-                    contentContainerStyle={s.scrollContent}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
-                >
-                    {/* Language */}
+            <View style={StyleSheet.absoluteFill}>
+                <View style={s.ambientLight} />
+                <View style={s.ambientLight2} />
+                <View style={s.noiseOverlay} />
+            </View>
+
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+                <ScrollView contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+
                     <View style={s.topRow}>
                         <View style={{ flex: 1 }} />
                         <TouchableOpacity onPress={toggleLang} style={s.langBtn}>
@@ -96,78 +92,77 @@ export default function LoginScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Logo */}
-                    <Animated.View style={[s.logoArea, { opacity: fadeAnim }]}>
+                    <Animated.View style={[s.logoArea, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
                         <View style={s.logoCircle}>
-                            <Shield size={32} color="#10B981" />
+                            <LinearGradient colors={['#10B981', '#059669']} style={s.logoGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                                <Shield size={36} color="#FFFFFF" strokeWidth={2.5} />
+                            </LinearGradient>
+                            <View style={s.logoGlow} />
                         </View>
                         <Text style={s.brand}>LifeOS</Text>
                         <Text style={s.brandSub}>
-                            {language === 'tr' ? 'Hayatın, organize.' : 'Your life, organized.'}
+                            {language === 'tr' ? 'Sadece sana özel asistanın.' : 'Your private life assistant.'}
                         </Text>
                     </Animated.View>
 
-                    {/* Card */}
-                    <Animated.View
-                        style={[s.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
-                    >
-                        <Text style={s.cardTitle}>{t.loginTitle}</Text>
-                        <Text style={s.cardSub}>{t.loginSub}</Text>
+                    <Animated.View style={[s.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+                        <View style={s.cardHeader}>
+                            <Text style={s.cardTitle}>{t.loginTitle}</Text>
+                            <Text style={s.cardSub}>{t.loginSub}</Text>
+                        </View>
 
-                        {/* Email */}
-                        <View style={s.inputWrap}>
-                            <Mail size={18} color="#475569" />
+                        <View style={[s.inputWrap, focusedInput === 'email' && s.inputWrapFocused]}>
+                            <Mail size={18} color={focusedInput === 'email' ? '#10B981' : '#64748B'} />
                             <TextInput
                                 placeholder={t.emailPlaceholder}
-                                placeholderTextColor="#475569"
+                                placeholderTextColor="#64748B"
                                 style={s.input}
                                 value={email}
                                 onChangeText={setEmail}
                                 autoCapitalize="none"
                                 keyboardType="email-address"
+                                onFocus={() => setFocusedInput('email')}
+                                onBlur={() => setFocusedInput(null)}
                             />
                         </View>
 
-                        {/* Password */}
-                        <View style={s.inputWrap}>
-                            <Lock size={18} color="#475569" />
+                        <View style={[s.inputWrap, focusedInput === 'password' && s.inputWrapFocused]}>
+                            <Lock size={18} color={focusedInput === 'password' ? '#10B981' : '#64748B'} />
                             <TextInput
                                 placeholder={t.passwordPlaceholder}
-                                placeholderTextColor="#475569"
+                                placeholderTextColor="#64748B"
                                 style={s.input}
                                 secureTextEntry
                                 value={password}
                                 onChangeText={setPassword}
+                                onFocus={() => setFocusedInput('password')}
+                                onBlur={() => setFocusedInput(null)}
                             />
                         </View>
 
-                        {/* Sign In */}
-                        <TouchableOpacity
-                            onPress={handleLogin}
-                            activeOpacity={0.85}
-                            disabled={loading}
-                        >
-                            <View style={[s.signInBtn, loading && { opacity: 0.7 }]}>
+                        <TouchableOpacity onPress={handleLogin} activeOpacity={0.8} disabled={loading} style={{ marginTop: 8 }}>
+                            <LinearGradient colors={['#10B981', '#059669']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[s.signInBtn, loading && { opacity: 0.7 }]}>
                                 {loading ? (
-                                    <ActivityIndicator color="#0F1419" />
+                                    <ActivityIndicator color="#FFFFFF" />
                                 ) : (
                                     <>
                                         <Text style={s.signInText}>{t.loginBtn}</Text>
-                                        <ArrowRight size={20} color="#0F1419" />
+                                        <ArrowRight size={20} color="#FFFFFF" />
                                     </>
                                 )}
-                            </View>
+                            </LinearGradient>
                         </TouchableOpacity>
+
+
 
                     </Animated.View>
 
-                    {/* Footer */}
-                    <View style={s.footer}>
+                    <Animated.View style={[s.footer, { opacity: fadeAnim }]}>
                         <Text style={s.footerText}>{t.noAccount} </Text>
                         <TouchableOpacity onPress={() => router.push('/register' as any)}>
                             <Text style={s.signUpLink}>{t.signUp}</Text>
                         </TouchableOpacity>
-                    </View>
+                    </Animated.View>
                 </ScrollView>
             </KeyboardAvoidingView>
         </View>
@@ -175,165 +170,184 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-    root: { flex: 1, backgroundColor: '#0F1419' },
+    root: { flex: 1, backgroundColor: '#030712' },
+    ambientLight: {
+        position: 'absolute',
+        top: -100,
+        left: -50,
+        width: 300,
+        height: 300,
+        borderRadius: 150,
+        backgroundColor: '#10B981',
+        opacity: 0.08,
+    },
+    ambientLight2: {
+        position: 'absolute',
+        bottom: 100,
+        right: -100,
+        width: 250,
+        height: 250,
+        borderRadius: 125,
+        backgroundColor: '#3B82F6',
+        opacity: 0.06,
+    },
+    noiseOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'transparent',
+    },
     scrollContent: {
         flexGrow: 1,
         paddingHorizontal: 24,
         paddingTop: Platform.OS === 'ios' ? 56 : 40,
         paddingBottom: 40,
+        justifyContent: 'center',
     },
     topRow: {
         flexDirection: 'row',
-        marginBottom: 24,
+        position: 'absolute',
+        top: Platform.OS === 'ios' ? 60 : 40,
+        right: 24,
+        zIndex: 10,
     },
     langBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1E293B',
-        paddingHorizontal: 14,
-        paddingVertical: 7,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
         borderRadius: 20,
         gap: 6,
         borderWidth: 1,
-        borderColor: '#334155',
+        borderColor: 'rgba(255,255,255,0.08)',
     },
     langText: {
         color: '#94A3B8',
         fontSize: 12,
         fontWeight: '700',
-        letterSpacing: 0.8,
+        letterSpacing: 1,
     },
 
     logoArea: {
         alignItems: 'center',
-        marginBottom: 32,
+        marginBottom: 48,
+        marginTop: 60,
     },
     logoCircle: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        backgroundColor: '#10B98115',
+        width: 80,
+        height: 80,
+        borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: '#10B98125',
+        marginBottom: 20,
+        position: 'relative',
+    },
+    logoGradient: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2,
+    },
+    logoGlow: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        borderRadius: 24,
+        backgroundColor: '#10B981',
+        opacity: 0.6,
+        transform: [{ scale: 1.2 }],
+        zIndex: 1,
     },
     brand: {
-        fontSize: 32,
+        fontSize: 36,
         fontWeight: '800',
-        color: '#F1F5F9',
-        letterSpacing: -0.8,
+        color: '#FFFFFF',
+        letterSpacing: -1.2,
     },
     brandSub: {
-        fontSize: 14,
-        color: '#64748B',
+        fontSize: 15,
+        color: '#94A3B8',
         fontWeight: '500',
-        marginTop: 4,
+        marginTop: 6,
+        letterSpacing: 0.2,
     },
 
     card: {
-        backgroundColor: '#1E293B',
-        borderRadius: 20,
-        padding: 28,
+        backgroundColor: 'rgba(30, 41, 59, 0.4)',
+        borderRadius: 28,
+        padding: 32,
         borderWidth: 1,
-        borderColor: '#334155',
-        marginBottom: 24,
+        borderColor: 'rgba(255, 255, 255, 0.05)',
+        marginBottom: 32,
+    },
+    cardHeader: {
+        marginBottom: 28,
     },
     cardTitle: {
-        fontSize: 24,
+        fontSize: 26,
         fontWeight: '700',
-        color: '#F1F5F9',
-        marginBottom: 4,
-        letterSpacing: -0.4,
+        color: '#F8FAFC',
+        marginBottom: 6,
+        letterSpacing: -0.5,
     },
     cardSub: {
-        fontSize: 14,
-        color: '#64748B',
-        marginBottom: 24,
+        fontSize: 15,
+        color: '#94A3B8',
         fontWeight: '500',
+        lineHeight: 22,
     },
     inputWrap: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#0F1419',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        height: 52,
-        marginBottom: 14,
-        gap: 12,
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        borderRadius: 16,
+        paddingHorizontal: 20,
+        height: 58,
+        marginBottom: 16,
+        gap: 14,
         borderWidth: 1,
-        borderColor: '#334155',
+        borderColor: 'rgba(255,255,255,0.05)',
+    },
+    inputWrapFocused: {
+        borderColor: 'rgba(16, 185, 129, 0.4)',
+        backgroundColor: 'rgba(15, 23, 42, 0.8)',
     },
     input: {
         flex: 1,
-        color: '#F1F5F9',
-        fontSize: 15,
+        color: '#F8FAFC',
+        fontSize: 16,
         fontWeight: '500',
     },
 
     signInBtn: {
+        height: 56,
+        borderRadius: 16,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        height: 52,
-        borderRadius: 12,
-        gap: 10,
-        marginTop: 4,
-        backgroundColor: '#10B981',
+        gap: 8,
     },
     signInText: {
-        color: '#0F1419',
+        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
-    },
-
-    divider: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 18,
-    },
-    divLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: '#334155',
-    },
-    divText: {
-        color: '#475569',
-        fontSize: 11,
-        fontWeight: '700',
-        marginHorizontal: 16,
-        letterSpacing: 1,
-    },
-
-    testBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 52,
-        borderRadius: 12,
-        gap: 8,
-        backgroundColor: '#0F1419',
-        borderWidth: 1,
-        borderColor: '#334155',
-    },
-    testText: {
-        color: '#10B981',
-        fontSize: 14,
-        fontWeight: '700',
+        letterSpacing: 0.5,
     },
 
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 16,
     },
     footerText: {
-        color: '#64748B',
+        color: '#94A3B8',
         fontSize: 14,
     },
     signUpLink: {
-        color: '#F1F5F9',
+        color: '#10B981',
         fontSize: 14,
-        fontWeight: '800',
+        fontWeight: '700',
     },
 });

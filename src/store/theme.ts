@@ -30,63 +30,99 @@ export interface ThemeColors {
 
 // Light Theme Colors
 const lightColors: ThemeColors = {
-    base: '#F8FAFC',
-    card: '#FFFFFF',
-    cardBorder: '#E2E8F0',
-    offWhite: '#1E293B',
-    pureWhite: '#0F172A',
-    muted: '#64748B',
-    subtle: '#94A3B8',
-    dim: '#CBD5E1',
-    emerald: '#10B981',
-    amber: '#F59E0B',
-    red: '#EF4444',
-    blue: '#3B82F6',
-    purple: '#8B5CF6',
-    deepSlate: '#F8FAFC',
+    base: '#F7F7F9',      // Apple-like light gray
+    card: '#FFFFFF',      // Pure white
+    cardBorder: '#E5E5EA', // Apple standard light border
+    offWhite: '#1C1C1E',  // Very dark gray text
+    pureWhite: '#FFFFFF',
+    muted: '#8E8E93',     // Apple standard muted text
+    subtle: '#AEAEB2',
+    dim: '#C7C7CC',
+    emerald: '#000000',   // Black for main accents in light mode (very premium/editorial)
+    amber: '#FF9500',     
+    red: '#FF3B30',       
+    blue: '#007AFF',      
+    purple: '#AF52DE',    
+    deepSlate: '#F7F7F9',
     gunmetal: '#FFFFFF',
-    burgundy: '#EF4444',
-    borderOnDark: '#E2E8F0',
-    borderOnLight: '#E2E8F0',
-    mutedTextOnDark: '#64748B',
-    mutedTextOnLight: '#64748B',
-    // Extra light-mode specific
+    burgundy: '#FF2D55',
+    borderOnDark: '#E5E5EA',
+    borderOnLight: '#E5E5EA',
+    mutedTextOnDark: '#8E8E93',
+    mutedTextOnLight: '#AEAEB2',
     statusBarStyle: 'dark-content',
     tabBarBg: '#FFFFFF',
-    tabBarBorder: '#E2E8F0',
-    inputBg: '#F1F5F9',
-    sectionBg: '#F1F5F9',
+    tabBarBorder: '#E5E5EA',
+    inputBg: '#F2F2F7',
+    sectionBg: '#F7F7F9',
 };
 
-// Dark Theme Colors
-const darkColors: ThemeColors = {
-    base: '#0F1419',
-    card: '#1E293B',
-    cardBorder: '#334155',
-    offWhite: '#F1F5F9',
+// ==========================================
+// 🚀 SUPREME TIER (Matte Dark Gray x Neon Chartreuse) - COMMENTED OUT
+// ==========================================
+/*
+const darkColorsSupreme: ThemeColors = {
+    base: '#111113',       
+    card: '#1A1A1D',       
+    cardBorder: 'rgba(255, 255, 255, 0.06)', 
+    offWhite: '#EDEDED',   
     pureWhite: '#FFFFFF',
-    muted: '#94A3B8',
-    subtle: '#64748B',
-    dim: '#475569',
-    emerald: '#10B981',
-    amber: '#F59E0B',
-    red: '#EF4444',
-    blue: '#3B82F6',
-    purple: '#8B5CF6',
-    deepSlate: '#0F1419',
-    gunmetal: '#1E293B',
-    burgundy: '#EF4444',
-    borderOnDark: '#334155',
-    borderOnLight: '#E2E8F0',
-    mutedTextOnDark: '#94A3B8',
-    mutedTextOnLight: '#64748B',
-    // Extra dark-mode specific
+    muted: '#A0A0A5',
+    subtle: '#707078',
+    dim: '#3A3A40',
+    emerald: '#D9F950',    
+    amber: '#FF9F0A',      
+    red: '#FF453A',        
+    blue: '#409CFF',       
+    purple: '#BF5AF2',     
+    deepSlate: '#111113',
+    gunmetal: '#1A1A1D',
+    burgundy: '#FF375F',   
+    borderOnDark: 'rgba(255, 255, 255, 0.06)',
+    borderOnLight: '#E5E5EA',
+    mutedTextOnDark: '#A0A0A5',
+    mutedTextOnLight: '#707078',
     statusBarStyle: 'light-content',
-    tabBarBg: '#0F1419',
-    tabBarBorder: '#1E293B',
-    inputBg: '#334155',
-    sectionBg: '#1E293B',
+    tabBarBg: '#111113',
+    tabBarBorder: 'rgba(255, 255, 255, 0.04)',
+    inputBg: '#212124',
+    sectionBg: '#151518',
 };
+*/
+
+// ==========================================
+// 🎨 ELECTRIC NEON TIER (Active) 
+// Deep OLED Black x Vibrant Neon Accents
+// ==========================================
+const darkColorsElectric: ThemeColors = {
+    base: '#000000',       // True OLED Black
+    card: '#161618',       // Sleek Dark Card
+    cardBorder: '#27272A', // Precise, sharp lines
+    offWhite: '#FFFFFF',   // Pure white text
+    pureWhite: '#FFFFFF',
+    muted: '#A1A1AA',
+    subtle: '#71717A',
+    dim: '#3F3F46',
+    emerald: '#00FF87',    // Vibrant Electric Green (Striking)
+    amber: '#FF9F0A',      // Glowing Amber
+    red: '#FF453A',        // Intense Red
+    blue: '#0A84FF',       // Luminous Blue
+    purple: '#BF5AF2',     // Vivid Purple
+    deepSlate: '#000000',
+    gunmetal: '#161618',
+    burgundy: '#FF375F',   // Pinkish Red
+    borderOnDark: '#27272A',
+    borderOnLight: '#E5E7EB',
+    mutedTextOnDark: '#A1A1AA',
+    mutedTextOnLight: '#71717A',
+    statusBarStyle: 'light-content',
+    tabBarBg: '#09090B',
+    tabBarBorder: '#27272A',
+    inputBg: '#1C1C1E',
+    sectionBg: '#121214',
+};
+
+const darkColors: ThemeColors = darkColorsElectric;
 
 export function useThemeColors(): ThemeColors {
     const theme = useStore((s) => s.theme);

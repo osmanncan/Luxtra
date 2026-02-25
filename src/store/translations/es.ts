@@ -39,6 +39,7 @@ export const es = {
         noAccount: '¿No tienes una cuenta?',
         signUp: 'Regístrate',
         testUser: 'Usuario de prueba (Sin Auth)',
+        continueWithGoogle: 'Continuar con Google',
     },
     tabs: {
         overview: 'Resumen',

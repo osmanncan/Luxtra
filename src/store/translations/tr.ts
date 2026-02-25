@@ -39,6 +39,7 @@ export const tr = {
         noAccount: 'Hesabın yok mu?',
         signUp: 'Kayıt Ol',
         testUser: 'Test Kullanıcısı (Hızlı Giriş)',
+        continueWithGoogle: 'Google ile Devam Et',
     },
     tabs: {
         overview: 'Genel Bakış',

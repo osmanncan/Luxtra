@@ -39,6 +39,7 @@ export const en = {
         noAccount: "Don't have an account?",
         signUp: 'Sign up',
         testUser: 'Test User (No Auth)',
+        continueWithGoogle: 'Continue with Google',
     },
     tabs: {
         overview: 'Overview',

@@ -1,27 +1,5 @@
 import { Subscription, Task } from '../store/useStore';
 
-// AI Service Configuration
-const AI_PROVIDER: 'gemini' | 'grok' = 'grok'; // Buradan sağlayıcıyı değiştirebilirsin
-
-const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
-const GROK_API_KEY = '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'; // <--- BURAYA GROK API ANAHTARINI YAPIŞTIR
-
-const API_CONFIG = {
-    gemini: {
-        url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        method: 'POST'
-    },
-    grok: {
-        url: 'https://api.x.ai/v1/chat/completions',
-        method: 'POST',
-        model: 'grok-beta',
-        headers: {
-            'Authorization': `Bearer ${GROK_API_KEY}`,
-            'Content-Type': 'application/json'
-        }
-    }
-};
-
 interface AIContext {
     subscriptions: Subscription[];
     tasks: Task[];
@@ -103,37 +81,36 @@ export async function getAIInsight(context: AIContext, userQuestion?: string): P
     const prompt = buildPrompt(context, userQuestion);
 
     try {
-        if (AI_PROVIDER === 'gemini') {
-            const response = await fetch(API_CONFIG.gemini.url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: { temperature: 0.95, maxOutputTokens: 200, topP: 0.9 },
-                }),
+        const { supabase } = await import('./supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+             return userQuestion ? "Oturum süresi dolmuş. Lütfen tekrar giriş yap." : generateLocalInsight(context);
+        }
+
+        try {
+            const { data, error } = await supabase.functions.invoke('handle-ai-chat', {
+                 body: { prompt }
             });
 
-            if (!response.ok) return generateLocalInsight(context);
-            const data = await response.json();
-            return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || generateLocalInsight(context);
-        } else {
-            // Grok (xAI) Integration
-            const response = await fetch(API_CONFIG.grok.url, {
-                method: 'POST',
-                headers: API_CONFIG.grok.headers,
-                body: JSON.stringify({
-                    model: API_CONFIG.grok.model,
-                    messages: [
-                        { role: 'system', content: 'You are a helpful life assistant.' },
-                        { role: 'user', content: prompt }
-                    ],
-                    temperature: 0.8,
-                }),
-            });
+            if (error) {
+                console.warn("AI Edge Function failed gracefully, falling back to local.");
+                return generateLocalInsight(context);
+            }
 
-            if (!response.ok) return generateLocalInsight(context);
-            const data = await response.json();
-            return data?.choices?.[0]?.message?.content?.trim() || generateLocalInsight(context);
+            if (data?.error) {
+                console.warn("API Error:", data.error);
+                return generateLocalInsight(context); // Fail silently into beautiful local fallback
+            }
+
+            if (data?.reply) {
+                 return data.reply;
+            }
+
+            return generateLocalInsight(context);
+        } catch (invokeError) {
+             console.warn("AI Edge Invoke failed gracefully, falling back to local.");
+             return generateLocalInsight(context);
         }
     } catch (_error) {
         return generateLocalInsight(context);

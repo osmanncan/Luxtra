@@ -117,7 +117,10 @@ export default function AddResponsibility() {
         const due = new Date();
         due.setDate(due.getDate() + (parseInt(daysDue) || 0));
 
-        const newId = Date.now().toString();
+        const newId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
         const reminderDateValue = reminderType === 'custom' ? getCustomReminderDate()?.toISOString() : undefined;
 
         await addTask({

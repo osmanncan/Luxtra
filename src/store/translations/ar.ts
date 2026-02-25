@@ -32,13 +32,14 @@ export const ar = {
     },
     auth: {
         loginTitle: 'مرحباً بعودتك',
-        loginSub: 'سجل الدخول للمتابعة.',
-        emailPlaceholder: 'البريد الإلكتروني',
+        loginSub: 'تسجيل الدخول لمواصلة رحلتك.',
+        emailPlaceholder: 'عنوان البريد الإلكتروني',
         passwordPlaceholder: 'كلمة المرور',
         loginBtn: 'تسجيل الدخول',
         noAccount: 'ليس لديك حساب؟',
-        signUp: 'إنشاء حساب',
-        testUser: 'مستخدم تجريبي',
+        signUp: 'اشتراك',
+        testUser: 'مستخدم تجريبي (بدون مصادقة)',
+        continueWithGoogle: 'المتابعة باستخدام Google',
     },
     tabs: {
         overview: 'نظرة عامة',

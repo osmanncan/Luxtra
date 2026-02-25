@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Animated,
+    KeyboardAvoidingView,
     Platform,
     ScrollView,
     StatusBar,
@@ -92,7 +93,10 @@ export default function AIInsightsScreen() {
     const sortedCats = Object.entries(topCategory).sort((a, b) => b[1] - a[1]);
 
     return (
-        <View style={[s.container, { backgroundColor: c.base }]}>
+        <KeyboardAvoidingView
+            style={[s.container, { backgroundColor: c.base }]}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
             <StatusBar barStyle={c.statusBarStyle} />
 
             <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
@@ -213,7 +217,7 @@ export default function AIInsightsScreen() {
                     </TouchableOpacity>
                 </View>
             </Animated.View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -399,10 +403,6 @@ const s = StyleSheet.create({
 
     /* Input Bar */
     inputBar: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,

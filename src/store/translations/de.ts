@@ -32,13 +32,14 @@ export const de = {
     },
     auth: {
         loginTitle: 'Willkommen zurück',
-        loginSub: 'Melde dich an, um fortzufahren.',
+        loginSub: 'Melden Sie sich an, um Ihre Reise fortzusetzen.',
         emailPlaceholder: 'E-Mail-Adresse',
         passwordPlaceholder: 'Passwort',
         loginBtn: 'Anmelden',
-        noAccount: 'Hast du noch kein Konto?',
+        noAccount: 'Haben Sie kein Konto?',
         signUp: 'Registrieren',
-        testUser: 'Testbenutzer (Kein Auth)',
+        testUser: 'Testbenutzer (Ohne Auth)',
+        continueWithGoogle: 'Weiter mit Google',
     },
     tabs: {
         overview: 'Übersicht',

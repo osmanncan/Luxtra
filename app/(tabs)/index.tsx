@@ -462,7 +462,7 @@ const s = StyleSheet.create({
   },
 
   /* Upgrade banner */
-  upgradeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 18, borderWidth: 1, gap: 14, marginBottom: 20 },
+  upgradeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 18, borderWidth: 1, gap: 14, marginBottom: 20, marginTop: 12 },
   upgradeIcon: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   upgradeTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
   upgradeSub: { fontSize: 12, fontWeight: '500' },

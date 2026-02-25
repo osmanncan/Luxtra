@@ -33,12 +33,13 @@ export const pt = {
     auth: {
         loginTitle: 'Bem-vindo de volta',
         loginSub: 'Faça login para continuar sua jornada.',
-        emailPlaceholder: 'E-mail',
+        emailPlaceholder: 'Endereço de e-mail',
         passwordPlaceholder: 'Senha',
         loginBtn: 'Entrar',
         noAccount: 'Não tem uma conta?',
-        signUp: 'Cadastre-se',
-        testUser: 'Usuário de Teste (Sem Auth)',
+        signUp: 'Inscrever-se',
+        testUser: 'Usuário de Teste (Sem Autenticação)',
+        continueWithGoogle: 'Continuar com Google',
     },
     tabs: {
         overview: 'Visão Geral',

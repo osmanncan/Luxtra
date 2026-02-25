@@ -85,8 +85,8 @@ interface AppState {
   // Auth
   user: User | null;
   setUser: (user: User | null) => void;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email?: string, password?: string) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean; message?: string }>;
+  register: (name?: string, email?: string, password?: string) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean; message?: string }>;
   logout: () => Promise<void>;
 
   // Profile
@@ -270,11 +270,12 @@ export const useStore = create<AppState>()(
         }
 
         const userObj: User = {
-          name,
+          name: name || 'Kullanıcı',
           email: cleanEmail,
           isPro: false
         };
         set({ user: userObj });
+        await useStore.getState().syncData();
         return { success: true };
       },
 
@@ -296,7 +297,7 @@ export const useStore = create<AppState>()(
         }
       },
 
-      setLanguage: (lang) => {
+      setLanguage: async (lang) => {
         const currencyMap: Record<string, string> = {
           en: 'USD',
           tr: 'TRY',
@@ -308,7 +309,36 @@ export const useStore = create<AppState>()(
           ar: 'AED',
         };
         const newCurrency = currencyMap[lang] || 'USD';
+        const state = useStore.getState();
+        const oldCurrency = state.currency;
+
         set({ language: lang, currency: newCurrency });
+
+        // Convert existing subscription amounts if currency actually changed
+        if (oldCurrency !== newCurrency && state.subscriptions.length > 0) {
+          try {
+            const { CurrencyService } = await import('../services/currencyService');
+            const rates = await CurrencyService.getRates(oldCurrency);
+
+            if (rates && rates[newCurrency]) {
+              const conversionRate = rates[newCurrency];
+              set((s) => ({
+                subscriptions: s.subscriptions.map((sub) => ({
+                  ...sub,
+                  amount: sub.currency === oldCurrency ? sub.amount * conversionRate : sub.amount,
+                  currency: sub.currency === oldCurrency ? newCurrency : sub.currency,
+                }))
+              }));
+
+              // Also convert budget
+              if (state.monthlyBudget > 0) {
+                set({ monthlyBudget: state.monthlyBudget * conversionRate });
+              }
+            }
+          } catch (e) {
+            console.error('Failed to convert currency automatically:', e);
+          }
+        }
 
         if (Platform.OS === 'android') {
           import('../services/widgetService').then(mod => {
@@ -316,14 +346,43 @@ export const useStore = create<AppState>()(
           });
         }
       },
-      setCurrency: (currency) => set((state) => {
+      setCurrency: async (newCurrency) => {
+        const state = useStore.getState();
+        const oldCurrency = state.currency;
+
+        set({ currency: newCurrency });
+
+        if (oldCurrency !== newCurrency && state.subscriptions.length > 0) {
+          try {
+            const { CurrencyService } = await import('../services/currencyService');
+            const rates = await CurrencyService.getRates(oldCurrency);
+
+            if (rates && rates[newCurrency]) {
+              const conversionRate = rates[newCurrency];
+              set((s) => ({
+                subscriptions: s.subscriptions.map((sub) => ({
+                  ...sub,
+                  amount: sub.currency === oldCurrency ? sub.amount * conversionRate : sub.amount,
+                  currency: sub.currency === oldCurrency ? newCurrency : sub.currency,
+                }))
+              }));
+
+              // Also convert budget
+              if (state.monthlyBudget > 0) {
+                set({ monthlyBudget: state.monthlyBudget * conversionRate });
+              }
+            }
+          } catch (e) {
+            console.error('Failed to convert currency manually:', e);
+          }
+        }
+
         if (Platform.OS === 'android') {
           import('../services/widgetService').then(mod => {
-            mod.updateAndroidWidget(state.subscriptions, currency);
+            mod.updateAndroidWidget(useStore.getState().subscriptions, newCurrency);
           });
         }
-        return { currency };
-      }),
+      },
 
       // Theme
       setTheme: (theme) => set({ theme }),
@@ -459,7 +518,9 @@ export const useStore = create<AppState>()(
           } else {
             remindDate.setDate(remindDate.getDate() - (sub.reminderDays || 1));
           }
-          remindDate.setHours(9, 0, 0, 0);
+          const notifTime = useStore.getState().notificationTime || '09:00';
+          const [hours, mins] = notifTime.split(':').map(Number);
+          remindDate.setHours(hours || 9, mins || 0, 0, 0);
 
           if (remindDate > new Date()) {
             await NotificationService.scheduleNotification(
@@ -472,29 +533,32 @@ export const useStore = create<AppState>()(
           }
         } catch (e) { console.log('Notification error:', e); }
 
-        const { supabase } = await import('../services/supabase');
-        const { data: { session } } = await supabase.auth.getSession();
+        try {
+          const { supabase } = await import('../services/supabase');
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        if (session) {
-          const { error } = await supabase.from('subscriptions').insert({
-            id: sub.id,
-            user_id: session.user.id,
-            name: sub.name,
-            amount: sub.amount,
-            currency: sub.currency,
-            billing_cycle: sub.billingCycle,
-            next_billing_date: sub.nextBillingDate,
-            category: sub.category,
-            icon: sub.icon,
-            is_paid: sub.isPaid,
-            reminder_days: sub.reminderDays,
-            reminder_date: sub.reminderDate
-          });
+          if (session && !sessionError) {
+            const { error } = await supabase.from('subscriptions').insert({
+              id: sub.id,
+              user_id: session.user.id,
+              name: sub.name,
+              amount: sub.amount,
+              currency: sub.currency,
+              billing_cycle: sub.billingCycle,
+              next_billing_date: sub.nextBillingDate,
+              category: sub.category,
+              icon: sub.icon,
+              is_paid: sub.isPaid,
+              reminder_days: sub.reminderDays,
+              reminder_date: sub.reminderDate
+            });
 
-          if (error) {
-            console.error('Supabase Subscription Insert Error:', error);
-            // Optionally: handle rollback if insert fails
+            if (error) {
+              console.error('Supabase Subscription Insert Error:', error);
+            }
           }
+        } catch (dbErr) {
+          console.error('Supabase error in addSubscription:', dbErr);
         }
       },
       removeSubscription: async (id) => {
@@ -529,6 +593,8 @@ export const useStore = create<AppState>()(
           if (updates.category !== undefined) dbUpdates.category = updates.category;
           if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
           if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
+          if (updates.reminderDays !== undefined) dbUpdates.reminder_days = updates.reminderDays;
+          if (updates.reminderDate !== undefined) dbUpdates.reminder_date = updates.reminderDate;
 
           await supabase.from('subscriptions').update(dbUpdates).eq('id', id);
         }
@@ -576,7 +642,9 @@ export const useStore = create<AppState>()(
           } else {
             remindDate.setDate(remindDate.getDate() - (task.reminderDays || 1));
           }
-          remindDate.setHours(9, 0, 0, 0);
+          const notifTime = useStore.getState().notificationTime || '09:00';
+          const [hours, mins] = notifTime.split(':').map(Number);
+          remindDate.setHours(hours || 9, mins || 0, 0, 0);
 
           if (remindDate > new Date()) {
             await NotificationService.scheduleNotification(
@@ -589,26 +657,30 @@ export const useStore = create<AppState>()(
           }
         } catch (e) { console.log('Notification error:', e); }
 
-        const { supabase } = await import('../services/supabase');
-        const { data: { session } } = await supabase.auth.getSession();
+        try {
+          const { supabase } = await import('../services/supabase');
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        if (session) {
-          const { error } = await supabase.from('tasks').insert({
-            id: task.id,
-            user_id: session.user.id,
-            title: task.title,
-            due_date: task.dueDate,
-            is_completed: task.isCompleted,
-            priority: task.priority,
-            is_recurring: task.isRecurring,
-            recurring_months: task.recurringMonths,
-            reminder_days: task.reminderDays,
-            reminder_date: task.reminderDate
-          });
+          if (session && !sessionError) {
+            const { error } = await supabase.from('tasks').insert({
+              id: task.id,
+              user_id: session.user.id,
+              title: task.title,
+              due_date: task.dueDate,
+              is_completed: task.isCompleted,
+              priority: task.priority,
+              is_recurring: task.isRecurring,
+              recurring_months: task.recurringMonths,
+              reminder_days: task.reminderDays,
+              reminder_date: task.reminderDate
+            });
 
-          if (error) {
-            console.error('Supabase Task Insert Error:', error);
+            if (error) {
+              console.error('Supabase Task Insert Error:', error);
+            }
           }
+        } catch (dbErr) {
+          console.error('Supabase error in addTask:', dbErr);
         }
       },
 

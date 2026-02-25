@@ -33,12 +33,13 @@ export const it = {
     auth: {
         loginTitle: 'Bentornato',
         loginSub: 'Accedi per continuare il tuo viaggio.',
-        emailPlaceholder: 'Indirizzo email',
+        emailPlaceholder: 'Indirizzo e-mail',
         passwordPlaceholder: 'Password',
         loginBtn: 'Accedi',
         noAccount: 'Non hai un account?',
-        signUp: 'Registrati',
-        testUser: 'Utente test (Senza Auth)',
+        signUp: 'Iscriviti',
+        testUser: 'Utente di prova (Senza Auth)',
+        continueWithGoogle: 'Continua con Google',
     },
     tabs: {
         overview: 'Panoramica',

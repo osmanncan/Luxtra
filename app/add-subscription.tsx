@@ -5,9 +5,8 @@ import {
   Bell,
   CalendarDays,
   Calendar as CalendarIcon,
-  DollarSign,
   Repeat,
-  Tag,
+  Tag
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
@@ -61,6 +60,8 @@ export default function AddSubscription() {
   const curr = CURRENCIES[userCurrency] || CURRENCIES.TRY;
 
   const allCategories = { ...SUB_CATEGORIES, ...customCategories };
+
+  const [adding, setAdding] = useState(false);
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -134,7 +135,13 @@ export default function AddSubscription() {
     const nextDate = new Date(today.getFullYear(), today.getMonth(), +day);
     if (nextDate < today) nextDate.setMonth(nextDate.getMonth() + 1);
 
-    const newId = Date.now().toString();
+    const newId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+
+    setAdding(true);
+
     const reminderDateValue = reminderType === 'custom' ? getCustomReminderDate()?.toISOString() : undefined;
 
     await addSubscription({
@@ -151,6 +158,7 @@ export default function AddSubscription() {
 
     import('expo-haptics').then(Haptics => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
 
+    setAdding(false);
     router.back();
   };
 
@@ -193,7 +201,11 @@ export default function AddSubscription() {
             value={amount}
             onChangeText={(txt) => setAmount(txt.replace(',', '.'))}
             colors={c}
-            icon={<DollarSign size={16} color={c.dim} style={{ marginRight: 12 }} />}
+            icon={
+              <Text style={{ fontSize: 16, fontWeight: '700', color: c.dim, marginRight: 12 }}>
+                {curr.symbol}
+              </Text>
+            }
           />
 
           <FormField
@@ -321,13 +333,13 @@ export default function AddSubscription() {
           </ScrollView>
 
           <TouchableOpacity
-            onPress={handleSave}
-            disabled={!isValid}
-            activeOpacity={0.85}
             style={[st.saveBtn, { backgroundColor: isValid ? c.emerald : c.card }, !isValid && { borderWidth: 1, borderColor: c.cardBorder }]}
+            onPress={handleSave}
+            disabled={!isValid || adding}
+            activeOpacity={0.85}
           >
             <Text style={[st.saveBtnText, { color: isValid ? '#0F1419' : c.dim }]}>
-              {isTR ? 'Aboneliği Kaydet' : 'Save Subscription'}
+              {adding ? (isTR ? 'Kaydediliyor...' : 'Saving...') : (isTR ? 'Aboneliği Kaydet' : 'Save Subscription')}
             </Text>
           </TouchableOpacity>
         </ScrollView>

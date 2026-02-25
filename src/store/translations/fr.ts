@@ -33,12 +33,13 @@ export const fr = {
     auth: {
         loginTitle: 'Bon retour',
         loginSub: 'Connectez-vous pour continuer votre voyage.',
-        emailPlaceholder: 'Adresse e-mail',
+        emailPlaceholder: 'Adresse électronique',
         passwordPlaceholder: 'Mot de passe',
         loginBtn: 'Se connecter',
         noAccount: "Vous n'avez pas de compte ?",
         signUp: "S'inscrire",
         testUser: 'Utilisateur de test (Sans Auth)',
+        continueWithGoogle: 'Continuer avec Google',
     },
     tabs: {
         overview: 'Aperçu',
