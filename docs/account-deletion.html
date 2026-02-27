@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxtra - Hesap Silme / Account Deletion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0f1a;
+            color: #e0e6ed;
+            line-height: 1.7;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0d1520 0%, #0a1628 100%);
+            border-bottom: 1px solid rgba(52, 211, 153, 0.15);
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #34d399, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #8b98a8;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        .section {
+            margin-bottom: 28px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(52, 211, 153, 0.08);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .warning-section {
+            border-color: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f0f4f8;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #c8d2dc;
+            margin: 16px 0 8px;
+        }
+
+        p,
+        li {
+            color: #9ca8b8;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        ul,
+        ol {
+            padding-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        a {
+            color: #34d399;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content strong {
+            color: #e0e6ed;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(52, 211, 153, 0.08);
+            font-size: 14px;
+        }
+
+        .data-table th {
+            color: #34d399;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            color: #9ca8b8;
+        }
+
+        .badge-deleted {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-retained {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .email-btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #34d399, #06b6d4);
+            color: #0a0f1a;
+            font-weight: 700;
+            font-size: 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            margin-top: 12px;
+            transition: opacity 0.3s;
+        }
+
+        .email-btn:hover {
+            opacity: 0.9;
+            text-decoration: none;
+        }
+
+        .lang-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .lang-btn {
+            padding: 8px 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            background: transparent;
+            color: #8b98a8;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+            border-color: #34d399;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 16px 60px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Luxtra</h1>
+        <p>Hesap Silme / Account Deletion</p>
+        <div class="lang-switcher">
+            <button class="lang-btn active" onclick="switchLang('tr')">🇹🇷 Türkçe</button>
+            <button class="lang-btn" onclick="switchLang('en')">🇬🇧 English</button>
+        </div>
+    </div>
+
+    <!-- TURKISH -->
+    <div class="container" id="lang-tr">
+
+        <div class="section">
+            <h2>📋 Hesap Silme Talebi</h2>
+            <p>Luxtra hesabınızı ve ilişkili tüm verilerinizi kalıcı olarak silmek istiyorsanız, aşağıdaki adımları
+                izleyin.</p>
+        </div>
+
+        <div class="section">
+            <h2>📌 Hesap Silme Adımları</h2>
+
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-content">
+                    <strong>E-posta gönderin</strong>
+                    <p>Aşağıdaki butona tıklayarak veya <a href="mailto:luxtraapp@gmail.com">luxtraapp@gmail.com</a>
+                        adresine e-posta gönderin.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-content">
+                    <strong>Hesap bilgilerinizi belirtin</strong>
+                    <p>E-postanızda Luxtra hesabınıza kayıtlı <strong>e-posta adresinizi</strong> belirtin ve
+                        hesabınızın silinmesini talep ettiğinizi yazın.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-content">
+                    <strong>Onay alın</strong>
+                    <p>Talebiniz <strong>en geç 7 iş günü</strong> içinde işleme alınacak ve hesabınız silindiğinde size
+                        e-posta ile bilgi verilecektir.</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="mailto:luxtraapp@gmail.com?subject=Luxtra%20Hesap%20Silme%20Talebi&body=Merhaba%2C%0A%0ALuxtra%20hesab%C4%B1m%C4%B1n%20ve%20t%C3%BCm%20verilerimin%20silinmesini%20talep%20ediyorum.%0A%0AHesap%20e-posta%20adresim%3A%20%5BE-posta%20adresinizi%20buraya%20yaz%C4%B1n%5D%0A%0ATe%C5%9Fekk%C3%BCrler."
+                    class="email-btn">📧 Hesap Silme Talebi Gönder</a>
+            </div>
+        </div>
+
+        <div class="section warning-section">
+            <h2>⚠️ Silinen ve Saklanan Veriler</h2>
+            <p>Hesabınız silindiğinde aşağıdaki veriler kalıcı olarak silinir veya anonim hale getirilir:</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Veri Türü</th>
+                        <th>İşlem</th>
+                        <th>Süre</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>E-posta adresi</td>
+                        <td><span class="badge-deleted">Silindi</span></td>
+                        <td>Hemen</td>
+                    </tr>
+                    <tr>
+                        <td>Profil bilgileri (ad)</td>
+                        <td><span class="badge-deleted">Silindi</span></td>
+                        <td>Hemen</td>
+                    </tr>
+                    <tr>
+                        <td>Abonelik verileri</td>
+                        <td><span class="badge-deleted">Silindi</span></td>
+                        <td>Hemen</td>
+                    </tr>
+                    <tr>
+                        <td>Görev/sorumluluk verileri</td>
+                        <td><span class="badge-deleted">Silindi</span></td>
+                        <td>Hemen</td>
+                    </tr>
+                    <tr>
+                        <td>Uygulama ayarları</td>
+                        <td><span class="badge-deleted">Silindi</span></td>
+                        <td>Hemen</td>
+                    </tr>
+                    <tr>
+                        <td>AI analiz geçmişi</td>
+                        <td><span class="badge-deleted">Silindi</span></td>
+                        <td>Hemen</td>
+                    </tr>
+                    <tr>
+                        <td>Ödeme/abonelik kaydı</td>
+                        <td><span class="badge-retained">Saklanan</span></td>
+                        <td>Yasal zorunluluk gereği 30 gün</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 16px; font-size: 13px; color: #6b7a8a;">
+                <strong>Not:</strong> Google Play veya Apple aboneliğiniz varsa, hesap silme işlemi aboneliğinizi
+                otomatik olarak iptal etmez. Aboneliğinizi mağaza ayarlarından ayrıca iptal etmeniz gerekmektedir.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>📧 İletişim</h2>
+            <p>Sorularınız için: <a href="mailto:luxtraapp@gmail.com">luxtraapp@gmail.com</a></p>
+        </div>
+    </div>
+
+    <!-- ENGLISH -->
+    <div class="container hidden" id="lang-en">
+
+        <div class="section">
+            <h2>📋 Account Deletion Request</h2>
+            <p>If you want to permanently delete your Luxtra account and all associated data, please follow the steps
+                below.</p>
+        </div>
+
+        <div class="section">
+            <h2>📌 Steps to Delete Your Account</h2>
+
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-content">
+                    <strong>Send an email</strong>
+                    <p>Click the button below or send an email to <a
+                            href="mailto:luxtraapp@gmail.com">luxtraapp@gmail.com</a>.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-content">
+                    <strong>Provide your account details</strong>
+                    <p>In your email, include the <strong>email address</strong> registered with your Luxtra account and
+                        state that you request account deletion.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-content">
+                    <strong>Receive confirmation</strong>
+                    <p>Your request will be processed within <strong>7 business days</strong>, and you will be notified
+                        via email when your account has been deleted.</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="mailto:luxtraapp@gmail.com?subject=Luxtra%20Account%20Deletion%20Request&body=Hello%2C%0A%0AI%20would%20like%20to%20request%20the%20deletion%20of%20my%20Luxtra%20account%20and%20all%20associated%20data.%0A%0AMy%20account%20email%3A%20%5BEnter%20your%20email%20here%5D%0A%0AThank%20you."
+                    class="email-btn">📧 Send Account Deletion Request</a>
+            </div>
+        </div>
+
+        <div class="section warning-section">
+            <h2>⚠️ Deleted and Retained Data</h2>
+            <p>When your account is deleted, the following data will be permanently deleted or anonymized:</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Data Type</th>
+                        <th>Action</th>
+                        <th>Timeline</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Email address</td>
+                        <td><span class="badge-deleted">Deleted</span></td>
+                        <td>Immediately</td>
+                    </tr>
+                    <tr>
+                        <td>Profile info (name)</td>
+                        <td><span class="badge-deleted">Deleted</span></td>
+                        <td>Immediately</td>
+                    </tr>
+                    <tr>
+                        <td>Subscription data</td>
+                        <td><span class="badge-deleted">Deleted</span></td>
+                        <td>Immediately</td>
+                    </tr>
+                    <tr>
+                        <td>Task/responsibility data</td>
+                        <td><span class="badge-deleted">Deleted</span></td>
+                        <td>Immediately</td>
+                    </tr>
+                    <tr>
+                        <td>App settings</td>
+                        <td><span class="badge-deleted">Deleted</span></td>
+                        <td>Immediately</td>
+                    </tr>
+                    <tr>
+                        <td>AI analysis history</td>
+                        <td><span class="badge-deleted">Deleted</span></td>
+                        <td>Immediately</td>
+                    </tr>
+                    <tr>
+                        <td>Payment/subscription record</td>
+                        <td><span class="badge-retained">Retained</span></td>
+                        <td>30 days (legal requirement)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 16px; font-size: 13px; color: #6b7a8a;">
+                <strong>Note:</strong> If you have a Google Play or Apple subscription, deleting your account does not
+                automatically cancel your subscription. You must cancel it separately from your store settings.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>📧 Contact</h2>
+            <p>For questions: <a href="mailto:luxtraapp@gmail.com">luxtraapp@gmail.com</a></p>
+        </div>
+    </div>
+
+    <script>
+        function switchLang(lang) {
+            document.getElementById('lang-tr').classList.toggle('hidden', lang !== 'tr');
+            document.getElementById('lang-en').classList.toggle('hidden', lang !== 'en');
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+    </script>
+
+</body>
+
+</html>
