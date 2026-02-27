@@ -1,6 +1,6 @@
 export const FREE_LIMITS = {
-    maxSubscriptions: 5,
-    maxResponsibilities: 5,
+    maxSubscriptions: 10,
+    maxResponsibilities: 10,
 };
 
 export const PRO_FEATURES = {
@@ -10,6 +10,7 @@ export const PRO_FEATURES = {
     recurringTasks: 'recurring_tasks',
     customCategories: 'custom_categories',
     biometricLock: 'biometric_lock',
+    advancedFiltering: 'advanced_filtering',
 } as const;
 
 export type ProFeature = typeof PRO_FEATURES[keyof typeof PRO_FEATURES];
@@ -17,7 +18,7 @@ export type ProFeature = typeof PRO_FEATURES[keyof typeof PRO_FEATURES];
 export function isFeatureLocked(feature: ProFeature, isPro: boolean): boolean {
     if (isPro) return false;
     // Specific free features
-    if (feature === 'biometric_lock') return false;
+    if (feature === 'biometric_lock' || feature === 'budget_tracking' || feature === 'custom_categories') return false;
     return true;
 }
 
@@ -47,26 +48,26 @@ export const FEATURE_COMPARISON = {
                 { text: `Up to ${FREE_LIMITS.maxSubscriptions} subscriptions`, included: true },
                 { text: `Up to ${FREE_LIMITS.maxResponsibilities} responsibilities`, included: true },
                 { text: 'Basic reminders', included: true },
-                { text: 'Dark/Light theme', included: true },
-                { text: 'AI Insights & Analytics', included: false },
-                { text: 'Custom Categories & Icons', included: false },
-                { text: 'Advanced Budgeting', included: false },
+                { text: 'AI Insights (3/month)', included: true },
+                { text: 'Advanced Reports & Charts', included: false },
+                { text: 'Export Data (CSV/PDF)', included: false },
+                { text: 'Advanced Filtering', included: false },
                 { text: 'Unlimited Everything', included: false },
             ],
         },
         pro: {
             title: 'Pro',
-            monthlyPrice: '$4.99',
-            yearlyPrice: '$39.99',
+            monthlyPrice: '$2.99',
+            yearlyPrice: '$19.99',
             features: [
                 { text: 'Unlimited subscriptions', included: true },
                 { text: 'Unlimited responsibilities', included: true },
                 { text: 'Advanced Smart Reminders', included: true },
-                { text: 'Custom Categories & Icons', included: true },
-                { text: 'AI Financial Assistant', included: true },
-                { text: 'Detailed Spend Reports', included: true },
+                { text: 'Unlimited AI Assistant', included: true },
+                { text: 'Detailed Reports & Charts', included: true },
                 { text: 'Export Data (CSV/PDF)', included: true },
-                { text: 'Priority Support', included: true },
+                { text: 'Advanced Filter & Calendar', included: true },
+                { text: 'Unlock Everything Forever', included: true },
             ],
         },
     },
@@ -75,29 +76,29 @@ export const FEATURE_COMPARISON = {
             title: 'Ücretsiz',
             price: '₺0',
             features: [
-                { text: `${FREE_LIMITS.maxSubscriptions} aboneliğe kadar`, included: true },
-                { text: `${FREE_LIMITS.maxResponsibilities} sorumluluğa kadar`, included: true },
+                { text: `${FREE_LIMITS.maxSubscriptions} abonelik limiti`, included: true },
+                { text: `${FREE_LIMITS.maxResponsibilities} sorumluluk limiti`, included: true },
                 { text: 'Temel hatırlatıcılar', included: true },
-                { text: 'Koyu/Açık tema', included: true },
-                { text: 'AI Analiz ve Öneriler', included: false },
-                { text: 'Özel Kategoriler & İkonlar', included: false },
-                { text: 'Gelişmiş Bütçe Takibi', included: false },
+                { text: 'AI Analiz (Ayda 3 Soru)', included: true },
+                { text: 'Detaylı Analiz & Grafikler', included: false },
+                { text: 'Veri Dışa Aktarma (PDF)', included: false },
+                { text: 'Gelişmiş Filtreleme', included: false },
                 { text: 'Sınırsız Her Şey', included: false },
             ],
         },
         pro: {
             title: 'Pro',
-            monthlyPrice: '₺99.99',
-            yearlyPrice: '₺799.99',
+            monthlyPrice: '₺49.99',
+            yearlyPrice: '₺349.99',
             features: [
-                { text: 'Sınırsız abonelik', included: true },
-                { text: 'Sınırsız sorumluluk', included: true },
-                { text: 'Gelişmiş Akıllı Hatırlatıcılar', included: true },
-                { text: 'Özel Kategoriler & İkonlar', included: true },
-                { text: 'AI Finansal Asistan', included: true },
-                { text: 'Detaylı Harcama Raporları', included: true },
-                { text: 'Veri Dışa Aktar (CSV/PDF)', included: true },
-                { text: 'Öncelikli Destek', included: true },
+                { text: 'Sınırsız abonelik takibi', included: true },
+                { text: 'Sınırsız sorumluluk takibi', included: true },
+                { text: 'Akıllı Bildirimler', included: true },
+                { text: 'Sınırsız AI Finans Asistanı', included: true },
+                { text: 'Gelişmiş Analiz Paneli', included: true },
+                { text: 'PDF Rapor Dışa Aktar', included: true },
+                { text: 'Gelişmiş Filtre & Takvim', included: true },
+                { text: 'Her Şeyi Sınırsız Kullan', included: true },
             ],
         },
     },

@@ -32,34 +32,63 @@ export default function PaywallScreen() {
 
     // Fetch real packages from RevenueCat
     const loadOfferings = async () => {
-      const { PurchaseService } = await import('../src/services/purchaseService');
-      const pkgs = await PurchaseService.getPackages();
-      setPackages(pkgs);
-      setLoading(false);
+      try {
+        const { PurchaseService } = await import('../src/services/purchaseService');
+        const pkgs = await PurchaseService.getPackages();
+        setPackages(pkgs);
+      } catch (e) {
+        console.log('RevenueCat not available, using mock mode');
+      } finally {
+        setLoading(false);
+      }
     };
     loadOfferings();
   }, []);
 
   const handlePurchase = async () => {
+    // Check if packages are available (won't be in Expo Go)
+    if (!packages || packages.length === 0) {
+      Alert.alert(
+        isTR ? 'Bilgi' : 'Info',
+        isTR
+          ? 'Uygulama içi satın alma sadece Google Play Store üzerinden yüklenmiş uygulamada çalışır. Lütfen uygulamayı Play Store\'dan indirin.'
+          : 'In-app purchases only work in the app installed from Google Play Store. Please download the app from Play Store.',
+      );
+      return;
+    }
+
+    const selectedPkg = packages.find(p =>
+      plan === 'monthly' ? p.packageType === 'MONTHLY' : p.packageType === 'ANNUAL'
+    );
+
+    if (!selectedPkg) {
+      Alert.alert(
+        isTR ? 'Hata' : 'Error',
+        isTR ? 'Seçilen plan bulunamadı. Lütfen tekrar deneyin.' : 'Selected plan not found. Please try again.',
+      );
+      return;
+    }
+
     try {
       setLoading(true);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      const selectedPkg = packages.find(p =>
-        plan === 'monthly' ? p.packageType === 'MONTHLY' : p.packageType === 'ANNUAL'
-      );
 
       const success = await upgradeToPro(selectedPkg);
 
       if (success) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         Alert.alert(
           '🎉',
           isTR ? 'Pro üyeliğiniz aktif edildi!' : 'Pro membership activated!',
           [{ text: 'OK', onPress: () => router.back() }]
         );
       }
+      // If success is false but no error thrown, the user likely cancelled — do nothing
     } catch (e) {
-      console.error(e);
+      console.error('[Luxtra] Purchase error in paywall:', e);
+      Alert.alert(
+        isTR ? 'Hata' : 'Error',
+        isTR ? 'Satın alma işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.' : 'An error occurred during purchase. Please try again.',
+      );
     } finally {
       setLoading(false);
     }
@@ -81,23 +110,31 @@ export default function PaywallScreen() {
   };
 
   const handleRestore = async () => {
-    const { PurchaseService } = await import('../src/services/purchaseService');
-    const success = await PurchaseService.restorePurchases();
-    if (success) {
-      upgradeToPro(); // Update local state
-      Alert.alert(isTR ? 'Başarılı' : 'Success', isTR ? 'Satın alımlar geri yüklendi!' : 'Purchases restored!');
-      router.back();
-    } else {
-      Alert.alert(isTR ? 'Bilgi' : 'Info', isTR ? 'Aktif bir abonelik bulunamadı.' : 'No active subscription found.');
+    try {
+      setLoading(true);
+      const { restorePurchases: storeRestore } = useStore.getState();
+      const success = await storeRestore();
+      if (success) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert(isTR ? 'Başarılı' : 'Success', isTR ? 'Satın alımlar geri yüklendi! Pro aktif.' : 'Purchases restored! Pro activated.');
+        router.back();
+      } else {
+        Alert.alert(isTR ? 'Bilgi' : 'Info', isTR ? 'Aktif bir abonelik bulunamadı.' : 'No active subscription found.');
+      }
+    } catch (e) {
+      console.error('[Luxtra] Restore error:', e);
+      Alert.alert(isTR ? 'Hata' : 'Error', isTR ? 'Geri yükleme başarısız oldu.' : 'Restore failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const monthlyPkg = packages.find(p => p.packageType === 'MONTHLY');
-  const yearlyPkg = packages.find(p => p.packageType === 'ANNUAL');
+  const monthlyPkg = (packages || []).find(p => p.packageType === 'MONTHLY');
+  const yearlyPkg = (packages || []).find(p => p.packageType === 'ANNUAL');
 
-  const monthlyPrice = monthlyPkg?.product.priceString || (isTR ? '₺149.99' : '$4.99');
-  const yearlyPrice = yearlyPkg?.product.priceString || (isTR ? '₺1,499.99' : '$49.99');
-  const yearlySaving = isTR ? '%16 tasarruf' : 'Save 16%';
+  const monthlyPrice = monthlyPkg?.product.priceString || (isTR ? '₺49.99' : '$4.99');
+  const yearlyPrice = yearlyPkg?.product.priceString || (isTR ? '₺349.99' : '$39.99');
+  const yearlySaving = isTR ? '%42 tasarruf' : 'Save 42%';
 
   if (isPro) {
     return (
@@ -168,11 +205,45 @@ export default function PaywallScreen() {
               <Sparkles size={32} color={c.emerald} />
             </View>
             <Text style={[s.heroTitle, { color: c.offWhite }]}>
-              {isTR ? 'LifeOS Pro' : 'LifeOS Pro'}
+              {isTR ? 'Luxtra Pro' : 'Luxtra Pro'}
             </Text>
             <Text style={[s.heroSub, { color: c.subtle }]}>
               {isTR ? 'Hayatının kontrolünü tamamen ele al' : 'Take full control of your life'}
             </Text>
+          </View>
+
+          {/* FOMO banner \u2014 dynamic */}
+          <View style={[s.fomoBanner, { backgroundColor: c.amber + '15', borderColor: c.amber + '30' }]}>
+            <Text style={[s.fomoText, { color: c.amber }]}>
+              {[
+                isTR ? '\ud83d\udd25 S\u0131n\u0131rl\u0131 S\u00fcre: \u0130lk 1000 kullan\u0131c\u0131ya \u00f6zel indirim!' : '\ud83d\udd25 Limited Time: Special discount for the first 1000 users!',
+                isTR ? '\u26a1 Bug\u00fcn abone olan 47 ki\u015fi tasarruf etmeye ba\u015flad\u0131!' : '\u26a1 47 people started saving today!',
+                isTR ? '\ud83d\udcb0 Pro kullan\u0131c\u0131lar ortalama ayda \u20ba650 tasarruf ediyor' : '\ud83d\udcb0 Pro users save an average of $45/month',
+                isTR ? '\ud83c\udf1f 7 g\u00fcn \u00fccretsiz dene, risk yok!' : '\ud83c\udf1f 7 days free trial, no risk!',
+              ][Math.floor(Date.now() / 60000) % 4]}
+            </Text>
+          </View>
+
+          {/* Testimonial \u2014 rotating */}
+          <View style={[s.testimonialCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+            {(() => {
+              const testimonials = isTR ? [
+                { text: '"Pro\'ya ge\u00e7tikten sonra gereksiz abonelikleri iptal ederek ayda \u20ba800 tasarruf ettim. Kesinlikle harika!"', author: '\u2014 Ahmet Y., \u0130stanbul' },
+                { text: '"T\u00fcm aboneliklerimi tek yerden takip ediyorum. Art\u0131k hi\u00e7bir \u00f6demeyi ka\u00e7\u0131rm\u0131yorum!"', author: '\u2014 Elif K., Ankara' },
+                { text: '"AI analizleri sayesinde hangi aboneliklerimin gereksiz oldu\u011funu g\u00f6rd\u00fcm."', author: '\u2014 Mert S., \u0130zmir' },
+              ] : [
+                { text: '"I saved $50/mo by tracking my unused subs. Totally worth it!"', author: '\u2014 Sarah J., NY' },
+                { text: '"The AI insights helped me cut 3 subscriptions I forgot about!"', author: '\u2014 Mike R., LA' },
+                { text: '"Best finance app I\'ve used. Clean, simple, powerful."', author: '\u2014 Emily T., London' },
+              ];
+              const t_ = testimonials[Math.floor(Date.now() / 120000) % testimonials.length];
+              return (
+                <>
+                  <Text style={[s.testimonialText, { color: c.offWhite }]}>{t_.text}</Text>
+                  <Text style={[s.testimonialAuthor, { color: c.subtle }]}>{t_.author}</Text>
+                </>
+              );
+            })()}
           </View>
 
           {/* ── COMPARISON TABLE ── */}
@@ -205,7 +276,7 @@ export default function PaywallScreen() {
                     )}
                   </View>
                   <View style={[s.compCheck, { backgroundColor: c.emerald + '05' }]}>
-                    {proFeature.included ? (
+                    {proFeature && proFeature.included ? (
                       <View style={[s.checkCircle, { backgroundColor: c.emerald + '20' }]}>
                         <Check size={10} color={c.emerald} strokeWidth={3} />
                       </View>
@@ -301,6 +372,8 @@ export default function PaywallScreen() {
                 </View>
               </View>
             </TouchableOpacity>
+
+
           </View>
 
           {/* ── CTA ── */}
@@ -317,7 +390,7 @@ export default function PaywallScreen() {
                 <>
                   <Crown size={18} color="#0F1419" />
                   <Text style={s.ctaBtnText}>
-                    {isTR ? 'Pro\'ya Geç' : 'Upgrade to Pro'}
+                    {isTR ? '7 Gün Ücretsiz Dene' : 'Start 7-Day Free Trial'}
                   </Text>
                 </>
               )}
@@ -363,10 +436,17 @@ const s = StyleSheet.create({
   closeBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
 
   /* Hero */
-  hero: { alignItems: 'center', paddingHorizontal: 20, marginBottom: 28 },
+  hero: { alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
   heroIcon: { width: 72, height: 72, borderRadius: 36, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   heroTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, marginBottom: 6 },
   heroSub: { fontSize: 15, fontWeight: '500', textAlign: 'center' },
+
+  /* FOMO & Testimonial */
+  fomoBanner: { marginHorizontal: 20, padding: 12, borderRadius: 12, borderWidth: 1, alignItems: 'center', marginBottom: 16 },
+  fomoText: { fontSize: 13, fontWeight: '700' },
+  testimonialCard: { marginHorizontal: 20, padding: 16, borderRadius: 14, borderWidth: 1, marginBottom: 28 },
+  testimonialText: { fontSize: 14, fontStyle: 'italic', fontWeight: '500', marginBottom: 8, lineHeight: 20 },
+  testimonialAuthor: { fontSize: 12, fontWeight: '600', textAlign: 'right' },
 
   /* Comparison */
   compSection: { marginHorizontal: 20, marginBottom: 28, borderRadius: 16, overflow: 'hidden' },

@@ -1,4 +1,4 @@
-<!-- # LifeOS Proje Notları & Yapılacaklar Listesi
+<!-- # Luxtra Proje Notları & Yapılacaklar Listesi
 
 ## � Proje Durum Raporu (Şubat 2026)
 
@@ -32,23 +32,64 @@ Uygulamanın temel iskeleti ve v1.1 sürümü için hedeflenen fonksiyonların b
 
 ### ❌ Bekleyen Özellikler ve Eksikler (Yapılmayanlar)
 
+_layout.tsx de pro aktif et kapat  
+<!-- Play store ödeme sonra ayarla 
+PRO ABONELİGİ HALLET  -->
+<!-- Logo -->
 
 
 
-UYGULAMA ADINI BELİRLEDİKTEN SONRA TÜM ŞEYLERİNİ O YAP ONA DİKKAT ET
+<!-- UYGULAMA ADINI BELİRLEDİKTEN SONRA TÜM ŞEYLERİNİ O YAP ONA DİKKAT ET -->
 
- Play store ödeme sonra ayarla           
+<!-- _layout.tsx de pro aktif et kapat   -->
 
-Ben uygulamanın içinde ki pro versiyonunda ki yapay zeka asistanını diyorum onun uygulamaya özel kullanıcıya özel bir ai olmasını istiyorum 
+
+
+Mail içerigi
+Bunu düzeltmek için Supabase Dashboard (arayüzü) üzerinden birkaç ayar yapmamız gerekiyor. Kodun içinden değil, doğrudan Supabase'in web sitesinden şu adımları takip etmelisin:
+
+<!-- 1. "Supabase" Yazısını ve İçeriği Değiştirmek (Mail Taslağı)
+Mailin üstündeki başlığı ve içeriği profesyonelleştirmek için:
+
+Supabase Dashboard'a gir.
+Sol menüden Authentication -> Email Templates kısmına tıkla.
+Burada "Confirm signup" sekmesinde:
+Subject: Buraya Luxtra - Hesap Onayı gibi bir şey yazabilirsin.
+Content: Buradaki HTML içeriğini istediğin gibi Türkçeleştirebilirsin. -->
+<!-- Aynı şekilde Authentication -> Auth Settings altında "Sender Name" kısmına Luxtra yazarsan, mail atan kişi artık Supabase değil, uygulama adın olarak gözükür. -->
+<!-- 2. "Localhost" Linkini Düzeltmek (Site URL)
+Linkin localhost gözükmesinin sebebi, Supabase'in hala senin siteni bilgisayarında (localhost:3000) sanmasıdır. Mobilde çalışması için:
+
+Authentication -> URL Configuration sayfasına git.
+Site URL: Buraya luxtra://login yazmalısın (Uygulamanın şeması luxtra olarak belirlenmiş).
+Redirect URLs: Alt taraftaki "Additional Redirect URLs" kısmına da şunları eklemeni öneririm:
+luxtra://*
+exp:// (Eğer Expo Go ile test ediyorsan linkin dönmesi için bazen gerekebilir)
+Özetle Ne Olacak?
+Bu ayarları yaptıktan sonra; kullanıcıya gelen mailin başlığı "Luxtra - Hesap Onayı" olacak, içindeki linke tıkladığında ise telefon otomatik olarak Luxtra uygulamasını açıp giriş sayfasına yönlendirecek. -->
+
+<!-- Bu adımları dashboard'da bulamazsan veya takılırsan söyle, hemen yardımcı olayım! -->
+
+
+
+<!-- Ben uygulamanın içinde ki pro versiyonunda ki yapay zeka asistanını diyorum onun uygulamaya özel kullanıcıya özel bir ai olmasını istiyorum  -->
 
 2-Kapsamlı Test Yapısı:
 Sadece bir tane test dosyası (StyledText-test.js) görüyorum. Proje büyüdükçe ve aiService gibi karmaşık mantıklar eklendikçe, hataları ayıklamak zorlaşacaktır.
 Fikir: Jest ve React Native Testing Library kullanarak component'larınız için birim (unit) ve entegrasyon testleri yazmaya başlayabilirsiniz. Özellikle store içindeki state mantıkları ve services içindeki fonksiyonlar test yazmak için ideal adaylar.
 Uluslararasılaştırma (i18n):
 
-Hesap onaylandıktan sonra ki açılan sayfa 
+<!-- pro yu iptal etmek için veya aktif etmek için alt yapı hazır demi  -->
 
-_layout.tsx de pro aktif et kapat
+<!-- API Error: API_KEY_INVALID hatası -->
+
+<!-- _layout.tsx de pro aktif et kapat -->
+
+<!-- Pro satın alma -->
+
+<!-- Hesap onaylandıktan sonra ki açılan sayfa  -->
+
+<!-- Şimdi tüm uygulamaya bak uygulamanın işleyişine bak detaylarına da tamam mı bana uygulamanın eksiklerini söyle ben istiyorum ki bu uygulamadan abonelik üzere para kazanmak kullanıcı bu uygulamayı kullanmak istesin bu aboneligi almak istesin bana neyin fazla neyin eksik oldugunu ve ne eklenebilir onu söyle premium bir uygulama istiyorum kusursuza yakın bir şey olsun istiyorum -->
 
 <!-- Ai de yazma kutusu yukarı kalksın -->
 

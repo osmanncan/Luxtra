@@ -79,7 +79,7 @@ export const de = {
         active: 'Aktiv',
         upgradePro: 'Upgrade auf Pro',
         upgradeSubtitle: 'Schalte intelligente Einblicke & unbegrenztes Tracking frei',
-        version: 'LifeOS v1.0.0',
+        version: 'Luxtra v1.0.0',
         budget: 'Monatliches Budget',
         budgetPlaceholder: 'z.B. 5000',
         setBudget: 'Budget festlegen',

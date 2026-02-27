@@ -44,7 +44,7 @@ export const SummaryCard = ({
                 </View>
             </View>
 
-            {monthlyBudget > 0 && isPro && (
+            {monthlyBudget > 0 && (
                 <View style={s.budgetRow}>
                     <View style={[s.budgetBar, { backgroundColor: colors.cardBorder }]}>
                         <View style={[s.budgetFill, {

@@ -79,7 +79,7 @@ export const it = {
         active: 'Attivo',
         upgradePro: 'Passa a Pro',
         upgradeSubtitle: 'Sblocca analisi intelligenti e monitoraggio illimitato',
-        version: 'LifeOS v1.0.0',
+        version: 'Luxtra v1.0.0',
         budget: 'Budget Mensile',
         budgetPlaceholder: 'es. 5000',
         setBudget: 'Imposta Budget',

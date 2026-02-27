@@ -5,7 +5,7 @@ import { AppState, AppStateStatus, StyleSheet, Text, TouchableOpacity, View } fr
 import { useStore } from '../store/useStore';
 
 export const BiometricGuard = ({ children }: { children: React.ReactNode }) => {
-  const { language, isBiometricEnabled } = useStore(); 
+  const { language, isBiometricEnabled } = useStore();
   const [isAuthenticated, setIsAuthenticated] = useState(!isBiometricEnabled);
   const appState = useRef(AppState.currentState);
   const isTR = language === 'tr';
@@ -59,9 +59,9 @@ export const BiometricGuard = ({ children }: { children: React.ReactNode }) => {
         <View style={styles.lockCircle}>
           <Lock size={40} color="#10b981" />
         </View>
-        <Text style={styles.title}>{isTR ? 'LifeOS Kilitli' : 'LifeOS Locked'}</Text>
-        <TouchableOpacity 
-          style={styles.retryBtn} 
+        <Text style={styles.title}>{isTR ? 'Luxtra Kilitli' : 'Luxtra Locked'}</Text>
+        <TouchableOpacity
+          style={styles.retryBtn}
           onPress={handleAuthentication}
           activeOpacity={0.8}
         >
@@ -69,7 +69,7 @@ export const BiometricGuard = ({ children }: { children: React.ReactNode }) => {
           <Text style={styles.retryText}>{isTR ? 'Kilidi Aç' : 'Unlock'}</Text>
         </TouchableOpacity>
       </View>
-    ); 
+    );
   }
 
   return <>{children}</>;

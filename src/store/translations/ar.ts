@@ -79,7 +79,7 @@ export const ar = {
         active: 'نشط',
         upgradePro: 'الترقية إلى Pro',
         upgradeSubtitle: 'فتح التحليلات الذكية والتتبع غير المحدود',
-        version: 'LifeOS v1.0.0',
+        version: 'Luxtra v1.0.0',
         budget: 'الميزانية الشهرية',
         budgetPlaceholder: 'مثلاً 5000',
         setBudget: 'تعيين الميزانية',

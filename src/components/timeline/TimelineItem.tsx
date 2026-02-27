@@ -13,6 +13,7 @@ interface TimelineItemProps {
         repeatsEvery: string;
     };
     onPress: () => void;
+    onComplete?: () => void;
     colors: ThemeColors;
 }
 
@@ -22,6 +23,7 @@ export const TimelineItem = ({
     currencySymbol,
     labels,
     onPress,
+    onComplete,
     colors,
 }: TimelineItemProps) => {
     const d = new Date(item.date);
@@ -60,8 +62,21 @@ export const TimelineItem = ({
                     </Text>
                 )}
             </View>
-            <View style={[s.kindPill, { backgroundColor: colors.sectionBg }]}>
-                <Text style={[s.kindPillText, { color: colors.muted }]}>{label}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {!isPayment && onComplete && (
+                    <TouchableOpacity
+                        style={[s.payBtn, { borderColor: colors.emerald }]}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            onComplete();
+                        }}
+                    >
+                        <Text style={{ fontSize: 14 }}>✓</Text>
+                    </TouchableOpacity>
+                )}
+                <View style={[s.kindPill, { backgroundColor: colors.sectionBg }]}>
+                    <Text style={[s.kindPillText, { color: colors.muted }]}>{label}</Text>
+                </View>
             </View>
         </TouchableOpacity>
     );
@@ -77,4 +92,5 @@ const s = StyleSheet.create({
     recurText: { fontSize: 10, fontWeight: '500', marginTop: 2 },
     kindPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
     kindPillText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+    payBtn: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5 },
 });

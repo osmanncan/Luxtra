@@ -99,7 +99,7 @@ export default function LoginScreen() {
                             </LinearGradient>
                             <View style={s.logoGlow} />
                         </View>
-                        <Text style={s.brand}>LifeOS</Text>
+                        <Text style={s.brand}>Luxtra</Text>
                         <Text style={s.brandSub}>
                             {language === 'tr' ? 'Sadece sana özel asistanın.' : 'Your private life assistant.'}
                         </Text>

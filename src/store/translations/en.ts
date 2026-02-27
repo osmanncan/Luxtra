@@ -79,7 +79,7 @@ export const en = {
         active: 'Active',
         upgradePro: 'Upgrade to Pro',
         upgradeSubtitle: 'Unlock smart insights & unlimited tracking',
-        version: 'LifeOS v1.0.0',
+        version: 'Luxtra v1.0.0',
         budget: 'Monthly Budget',
         budgetPlaceholder: 'e.g. 5000',
         setBudget: 'Set Budget',
@@ -133,7 +133,7 @@ export const en = {
     },
     ai: {
         title: 'AI Assistant',
-        subtitle: 'Powered by Gemini AI',
+        subtitle: '',
         askAnything: 'Ask me anything about your finances...',
         placeholder: 'E.g. How can I save money?',
         analyzing: 'Analyzing your data...',

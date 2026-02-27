@@ -38,7 +38,7 @@ const lightColors: ThemeColors = {
     muted: '#8E8E93',     // Apple standard muted text
     subtle: '#AEAEB2',
     dim: '#C7C7CC',
-    emerald: '#000000',   // Black for main accents in light mode (very premium/editorial)
+    emerald: '#059669',   // Warm emerald — vibrant but not harsh, premium feel
     amber: '#FF9500',     
     red: '#FF3B30',       
     blue: '#007AFF',      
@@ -122,11 +122,69 @@ const darkColorsElectric: ThemeColors = {
     sectionBg: '#121214',
 };
 
+const darkColorsOcean: ThemeColors = {
+    ...darkColorsElectric,
+    base: '#0A192F',
+    card: '#112240',
+    cardBorder: '#233554',
+    emerald: '#64FFDA',
+    sectionBg: '#0A192F',
+    tabBarBg: '#0A192F',
+};
+
+const darkColorsBurgundy: ThemeColors = {
+    ...darkColorsElectric,
+    base: '#2C0B1B', // Dark Wine
+    card: '#3D0E25',
+    cardBorder: '#5E1B3A',
+    emerald: '#E8B4CA', // Rose gold
+    sectionBg: '#2C0B1B',
+    tabBarBg: '#2C0B1B',
+};
+
+const darkColorsForest: ThemeColors = {
+    ...darkColorsElectric,
+    base: '#0B2015',
+    card: '#123020',
+    cardBorder: '#1A422D',
+    emerald: '#A8FF50', // Lime
+    sectionBg: '#0B2015',
+    tabBarBg: '#0B2015',
+};
+
+const lightColorsSunrise: ThemeColors = {
+    ...lightColors,
+    base: '#FFF3E0', // Beige
+    card: '#FFFFFF',
+    cardBorder: '#FFE0B2',
+    emerald: '#D84315', // Coral/Orange
+    sectionBg: '#FFF3E0',
+    tabBarBg: '#FFF3E0',
+};
+
+const darkColorsCosmos: ThemeColors = {
+    ...darkColorsElectric,
+    base: '#0F041A', // Deep purple
+    card: '#1B0830',
+    cardBorder: '#2E1054',
+    emerald: '#E0B0FF', // Mauve
+    sectionBg: '#0F041A',
+    tabBarBg: '#0F041A',
+};
+
 const darkColors: ThemeColors = darkColorsElectric;
 
 export function useThemeColors(): ThemeColors {
     const theme = useStore((s) => s.theme);
-    return theme === 'dark' ? darkColors : lightColors;
+    switch (theme) {
+        case 'ocean': return darkColorsOcean;
+        case 'burgundy': return darkColorsBurgundy;
+        case 'forest': return darkColorsForest;
+        case 'sunrise': return lightColorsSunrise;
+        case 'cosmos': return darkColorsCosmos;
+        case 'dark': return darkColors;
+        default: return lightColors;
+    }
 }
 
 export { darkColors, lightColors };

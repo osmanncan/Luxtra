@@ -44,7 +44,7 @@ function buildPrompt(context: AIContext, userQuestion?: string): string {
 
     const langInstructions = `IMPORTANT: Respond ENTIRELY in ${langNames[language]}. Be warm and personal. Give a UNIQUE angle every time — vary between financial savings tips, responsibility management, habit forming, or motivational nudges. Never repeat the same advice.`;
 
-    const systemPrompt = `You are LifeOS AI assistant. You help users manage their life — subscriptions, responsibilities, and spending.
+    const systemPrompt = `You are Luxtra AI assistant. You help users manage their life — subscriptions, responsibilities, and spending.
 ${langInstructions}
 Keep responses concise (max 3-4 sentences). Be actionable and highly specific to the user's data.
 Use 1 emoji max. Be creative and vary your angle each time you respond.
@@ -156,7 +156,7 @@ function generateLocalInsight(context: AIContext): string {
         topSub ? `💡 En yüksek harcaman "${topSub.name}" (${topSub.amount.toFixed(2)}₺). Bu tek kalem aylık bütçenin önemli bir parçası — hâlâ değiyor mu?` : null,
         totalMonthly > 0 ? `📊 Aylık ${totalMonthly.toFixed(2)}₺ harcıyorsun, yıllık bazda bu ${annualized.toFixed(0)}₺ yapıyor. Küçük kesintiler zamanla büyük fark yaratır.` : null,
         urgentTask ? `⏰ "${urgentTask.title}" yakında son buluyor. Ertelemeden planını oluşturmaya başla.` : null,
-        recurringTasks.length > 0 ? `🔄 ${recurringTasks.length} tekrarlayan sorumluluğun var — LifeOS bunları otomatik takip ediyor.` : null,
+        recurringTasks.length > 0 ? `🔄 ${recurringTasks.length} tekrarlayan sorumluluğun var — Luxtra bunları otomatik takip ediyor.` : null,
         subscriptions.length > 3 ? `🔍 ${subscriptions.length} aktif aboneliğin var. Son 30 günde hangilerini gerçekten kullandın?` : null,
         monthlyPlans.length > 1 ? `💰 Aylık planlardan birini yıllığa çevirmek %10-20 tasarruf sağlayabilir. ${sortedSubs[0]?.name} iyi bir başlangıç olabilir.` : null,
         dueIn7.length > 0 ? `🗓️ Bu haftaiçinde ${dueIn7.length} ödeme var: ${dueIn7.map(s => s.name).join(', ')}. Hesabında hazır bakiye var mı?` : null,
@@ -173,7 +173,7 @@ function generateLocalInsight(context: AIContext): string {
         topSub ? `💡 Your biggest expense is "${topSub.name}" (${topSub.amount.toFixed(2)}). It's a significant chunk of your budget — still worth it?` : null,
         totalMonthly > 0 ? `📊 You spend ${totalMonthly.toFixed(2)}/month on subscriptions — that's ${annualized.toFixed(0)}/year. Small cuts add up to real savings.` : null,
         urgentTask ? `⏰ "${urgentTask.title}" is coming up soon. Don't let it sneak up on you — start planning today.` : null,
-        recurringTasks.length > 0 ? `🔄 You have ${recurringTasks.length} recurring responsibilities. LifeOS is tracking them automatically.` : null,
+        recurringTasks.length > 0 ? `🔄 You have ${recurringTasks.length} recurring responsibilities. Luxtra is tracking them automatically.` : null,
         subscriptions.length > 3 ? `🔍 ${subscriptions.length} active subscriptions — have you actually used all of them in the past month?` : null,
         monthlyPlans.length > 1 ? `💰 Switching one monthly plan to yearly could save 10-20%. ${sortedSubs[0]?.name} might be a great candidate.` : null,
         dueIn7.length > 0 ? `🗓️ ${dueIn7.length} payment(s) due this week: ${dueIn7.map(s => s.name).join(', ')}. Make sure your account is ready.` : null,

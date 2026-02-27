@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -70,13 +69,13 @@ export interface Task {
   isCompleted: boolean;
   priority: 'high' | 'medium' | 'low';
   type: 'life';
-  isRecurring?: boolean;
-  recurringMonths?: number; // repeat every X months
+  isRecurring: boolean;
+  recurringMonths: number;
   reminderDays?: number; // default: 1
   reminderDate?: string; // custom notification date
 }
 
-export type ThemeMode = 'dark' | 'light';
+export type ThemeMode = 'dark' | 'light' | 'ocean' | 'burgundy' | 'forest' | 'sunrise' | 'cosmos';
 
 interface AppState {
   subscriptions: Subscription[];
@@ -85,8 +84,16 @@ interface AppState {
   // Auth
   user: User | null;
   setUser: (user: User | null) => void;
-  login: (email?: string, password?: string) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean; message?: string }>;
-  register: (name?: string, email?: string, password?: string) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean; message?: string }>;
+  login: (email?: string, password?: string) => Promise<
+    | { success: false; error: string; needsConfirmation?: undefined; message?: undefined }
+    | { success: true; needsConfirmation: true; message: string; error?: undefined }
+    | { success: true; error?: undefined; needsConfirmation?: undefined; message?: undefined }
+  >;
+  register: (name?: string, email?: string, password?: string) => Promise<
+    | { success: false; error: string; needsConfirmation?: undefined; message?: undefined }
+    | { success: true; needsConfirmation: true; message: string; error?: undefined }
+    | { success: true; error?: undefined; needsConfirmation?: undefined; message?: undefined }
+  >;
   logout: () => Promise<void>;
 
   // Profile
@@ -94,9 +101,9 @@ interface AppState {
 
   // Settings
   language: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar';
-  setLanguage: (lang: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar') => void;
+  setLanguage: (lang: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar') => Promise<void>;
   currency: string;
-  setCurrency: (currency: string) => void;
+  setCurrency: (currency: string) => Promise<void>;
 
   // Theme
   theme: ThemeMode;
@@ -123,14 +130,20 @@ interface AppState {
   setAiInsight: (insight: string | null) => void;
   setAiLoading: (loading: boolean) => void;
 
-  addSubscription: (sub: Subscription) => void;
-  removeSubscription: (id: string) => void;
-  updateSubscription: (id: string, updates: Partial<Subscription>) => void;
-  markSubscriptionPaid: (id: string) => void;
+  // Free AI Quota (3 per month)
+  freeAiQuestionsUsed: number;
+  freeAiQuestionResetMonth: string; // 'YYYY-MM'
+  useAiQuestion: () => boolean; // returns true if question was allowed
+  canAskAiFree: () => boolean;
 
-  addTask: (task: Task) => void;
-  toggleTask: (id: string) => void;
-  deleteTask: (id: string) => void;
+  addSubscription: (sub: Subscription) => Promise<void>;
+  removeSubscription: (id: string) => Promise<void>;
+  updateSubscription: (id: string, updates: Partial<Subscription>) => Promise<void>;
+  markSubscriptionPaid: (id: string) => Promise<void>;
+
+  addTask: (task: Task) => Promise<void>;
+  toggleTask: (id: string) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
 
   // Custom Categories
   customCategories: Record<string, CategoryConfig>;
@@ -142,24 +155,81 @@ interface AppState {
   setNotificationsEnabled: (enabled: boolean) => void;
   notificationTime: string; // HH:mm format
   setNotificationTime: (time: string) => void;
+  // Streak & Achievements
+  streakCount: number;
+  lastLoginDate: string | null;
+  longestStreak: number;
+  achievements: string[];
+  recordLogin: () => void;
+  unlockAchievement: (id: string) => void;
+  paywallVariant: 'A' | 'B'; // A/B test mock flag
   syncData: () => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       language: 'tr',
       currency: 'TRY',
+      paywallVariant: Math.random() > 0.5 ? 'A' : 'B',
+
       theme: 'dark',
       monthlyBudget: 0,
       isBiometricEnabled: false,
-      aiInsight: null,
-      customCategories: {},
+      aiInsight: null as string | null,
+      customCategories: {} as Record<string, any>,
       aiLoading: false,
       notificationsEnabled: true,
       notificationTime: '09:00',
+      streakCount: 0,
+      lastLoginDate: null as string | null,
+      longestStreak: 0,
+      achievements: [] as string[],
+      freeAiQuestionsUsed: 0,
+      freeAiQuestionResetMonth: new Date().toISOString().slice(0, 7),
 
-      user: null, // Start with null
+      recordLogin: () => {
+        const state = get();
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        
+        if (!state.lastLoginDate) {
+          set({ lastLoginDate: todayStr, streakCount: 1, longestStreak: 1 });
+          return;
+        }
+        
+        if (state.lastLoginDate === todayStr) {
+          return; // Already logged in today
+        }
+        
+        const lastDate = new Date(state.lastLoginDate);
+        const diffTime = Math.abs(now.getTime() - lastDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        let newStreak = state.streakCount;
+        if (diffDays === 1) {
+          newStreak += 1;
+        } else {
+          newStreak = 1;
+        }
+
+        set({
+          streakCount: newStreak,
+          lastLoginDate: todayStr,
+          longestStreak: Math.max(state.longestStreak, newStreak)
+        });
+      },
+
+      unlockAchievement: (id) => {
+        set((state) => {
+          if (!state.achievements.includes(id)) {
+            return { achievements: [...state.achievements, id] };
+          }
+          return {};
+        });
+      },
+
+      user: null as User | null, // Start with null
       setUser: (user) => set({ user }),
 
       login: async (email, password) => {
@@ -190,7 +260,7 @@ export const useStore = create<AppState>()(
           isPro: false
         };
         set({ user: userObj });
-        await useStore.getState().syncData();
+        await get().syncData();
         return { success: true };
       },
 
@@ -275,7 +345,7 @@ export const useStore = create<AppState>()(
           isPro: false
         };
         set({ user: userObj });
-        await useStore.getState().syncData();
+        await get().syncData();
         return { success: true };
       },
 
@@ -309,7 +379,7 @@ export const useStore = create<AppState>()(
           ar: 'AED',
         };
         const newCurrency = currencyMap[lang] || 'USD';
-        const state = useStore.getState();
+        const state = get();
         const oldCurrency = state.currency;
 
         set({ language: lang, currency: newCurrency });
@@ -339,15 +409,9 @@ export const useStore = create<AppState>()(
             console.error('Failed to convert currency automatically:', e);
           }
         }
-
-        if (Platform.OS === 'android') {
-          import('../services/widgetService').then(mod => {
-            mod.updateAndroidWidget(useStore.getState().subscriptions, newCurrency);
-          });
-        }
       },
       setCurrency: async (newCurrency) => {
-        const state = useStore.getState();
+        const state = get();
         const oldCurrency = state.currency;
 
         set({ currency: newCurrency });
@@ -376,17 +440,17 @@ export const useStore = create<AppState>()(
             console.error('Failed to convert currency manually:', e);
           }
         }
-
-        if (Platform.OS === 'android') {
-          import('../services/widgetService').then(mod => {
-            mod.updateAndroidWidget(useStore.getState().subscriptions, newCurrency);
-          });
-        }
       },
 
       // Theme
       setTheme: (theme) => set({ theme }),
-      toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
+      toggleTheme: () => set((state) => {
+        const fallback = state.theme === 'dark' ? 'light' : 'dark';
+        if (state.theme !== 'dark' && state.theme !== 'light') {
+          return { theme: 'dark' }; // if premium theme is active, toggling goes to basic dark
+        }
+        return { theme: fallback };
+      }),
 
       // Budget
       setMonthlyBudget: (amount) => set({ monthlyBudget: amount }),
@@ -394,38 +458,81 @@ export const useStore = create<AppState>()(
       // Security
       toggleBiometric: () => set((state) => ({ isBiometricEnabled: !state.isBiometricEnabled })),
 
-      // Pro Membership
-      upgradeToPro: async (pkg) => {
-        const { PurchaseService } = await import('../services/purchaseService');
-        if (pkg) {
-          const success = await PurchaseService.purchasePackage(pkg);
-          if (success) {
-            set((state) => ({ user: state.user ? { ...state.user, isPro: true } : null }));
+      // Pro Membership — Real Play Store purchases only
+      upgradeToPro: async (pkg: any) => {
+        try {
+          const { PurchaseService } = await import('../services/purchaseService');
+
+          if (!PurchaseService.isAvailable()) {
+            console.warn('[Luxtra] In-app purchases not available in this environment.');
+            return false;
           }
-          return success;
+
+          const result = await PurchaseService.purchasePackage(pkg);
+
+          if (result.success) {
+            set((state: AppState) => ({ user: state.user ? { ...state.user, isPro: true } : null }));
+            return true;
+          }
+
+          // Purchase did not succeed — DO NOT grant Pro
+          // The error type is logged for debugging; UI handles user-facing messages
+          if (result.error !== 'USER_CANCELLED') {
+            console.warn('[Luxtra] Purchase failed:', result.error);
+          }
+          return false;
+        } catch (e) {
+          console.error('[Luxtra] Unexpected purchase error:', e);
+          return false;
         }
-        // Fallback or Test
-        set((state) => ({ user: state.user ? { ...state.user, isPro: true } : null }));
-        return true;
       },
       cancelPro: () => set((state) => ({
         user: state.user ? { ...state.user, isPro: false } : null,
       })),
       refreshProStatus: async () => {
-        const { PurchaseService } = await import('../services/purchaseService');
-        const isPro = await PurchaseService.checkProStatus();
-        set((state) => ({ user: state.user ? { ...state.user, isPro } : null }));
+        try {
+          const { PurchaseService } = await import('../services/purchaseService');
+          const isPro = await PurchaseService.checkProStatus();
+          set((state) => ({ user: state.user ? { ...state.user, isPro } : null }));
+        } catch (e) {
+          console.error('[Luxtra] Error refreshing pro status:', e);
+        }
       },
       restorePurchases: async () => {
-        const { PurchaseService } = await import('../services/purchaseService');
-        const isPro = await PurchaseService.restorePurchases();
-        set((state) => ({ user: state.user ? { ...state.user, isPro } : null }));
-        return isPro;
+        try {
+          const { PurchaseService } = await import('../services/purchaseService');
+          const isPro = await PurchaseService.restorePurchases();
+          set((state) => ({ user: state.user ? { ...state.user, isPro } : null }));
+          return isPro;
+        } catch (e) {
+          console.error('[Luxtra] Error restoring purchases:', e);
+          return false;
+        }
       },
 
       // AI Insights
       setAiInsight: (insight) => set({ aiInsight: insight }),
       setAiLoading: (loading) => set({ aiLoading: loading }),
+
+      // Free AI Quota
+      canAskAiFree: (): boolean => {
+        const state = get();
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        if (state.freeAiQuestionResetMonth !== currentMonth) return true;
+        return state.freeAiQuestionsUsed < 3;
+      },
+      useAiQuestion: (): boolean => {
+        const state = get();
+        if (!state.canAskAiFree()) return false;
+        
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        if (state.freeAiQuestionResetMonth !== currentMonth) {
+          set({ freeAiQuestionsUsed: 1, freeAiQuestionResetMonth: currentMonth });
+        } else {
+          set((s) => ({ freeAiQuestionsUsed: s.freeAiQuestionsUsed + 1 }));
+        }
+        return true;
+      },
 
       subscriptions: [
         {
@@ -434,8 +541,9 @@ export const useStore = create<AppState>()(
           amount: 59.99,
           currency: 'TRY',
           billingCycle: 'monthly',
-          nextBillingDate: new Date(new Date().getFullYear(), new Date().getMonth(), 9).toISOString(),
-          category: 'Music',
+          nextBillingDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
+          category: 'Entertainment',
+          isPaid: true
         },
         {
           id: '2',
@@ -443,16 +551,16 @@ export const useStore = create<AppState>()(
           amount: 149.99,
           currency: 'TRY',
           billingCycle: 'monthly',
-          nextBillingDate: new Date(new Date().getFullYear(), new Date().getMonth(), 15).toISOString(),
+          nextBillingDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 5).toISOString(),
           category: 'Entertainment',
         },
         {
           id: '3',
-          name: 'iCloud+',
-          amount: 12.99,
+          name: 'Google One',
+          amount: 9.99,
           currency: 'TRY',
           billingCycle: 'monthly',
-          nextBillingDate: new Date(new Date().getFullYear(), new Date().getMonth(), 20).toISOString(),
+          nextBillingDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 10).toISOString(),
           category: 'Cloud',
         },
         {
@@ -464,7 +572,7 @@ export const useStore = create<AppState>()(
           nextBillingDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
           category: 'Health',
         },
-      ],
+      ] as Subscription[],
       tasks: [
         {
           id: '1',
@@ -473,6 +581,8 @@ export const useStore = create<AppState>()(
           isCompleted: false,
           priority: 'high',
           type: 'life',
+          isRecurring: false,
+          recurringMonths: 0
         },
         {
           id: '2',
@@ -494,17 +604,12 @@ export const useStore = create<AppState>()(
           isRecurring: true,
           recurringMonths: 6,
         },
-      ],
+      ] as Task[],
 
-      addSubscription: async (sub) => {
+      addSubscription: async (sub: Subscription) => {
         // First update local state for better UX
         set((state) => {
           const newSubs = [...state.subscriptions, sub];
-          if (Platform.OS === 'android') {
-            import('../services/widgetService').then(mod => {
-              mod.updateAndroidWidget(newSubs, state.currency);
-            });
-          }
           return { subscriptions: newSubs };
         });
 
@@ -518,7 +623,7 @@ export const useStore = create<AppState>()(
           } else {
             remindDate.setDate(remindDate.getDate() - (sub.reminderDays || 1));
           }
-          const notifTime = useStore.getState().notificationTime || '09:00';
+          const notifTime = get().notificationTime || '09:00';
           const [hours, mins] = notifTime.split(':').map(Number);
           remindDate.setHours(hours || 9, mins || 0, 0, 0);
 
@@ -561,7 +666,7 @@ export const useStore = create<AppState>()(
           console.error('Supabase error in addSubscription:', dbErr);
         }
       },
-      removeSubscription: async (id) => {
+      removeSubscription: async (id: string) => {
         const { supabase } = await import('../services/supabase');
         const { data: { session } } = await supabase.auth.getSession();
 
@@ -571,15 +676,16 @@ export const useStore = create<AppState>()(
 
         set((state) => {
           const newSubs = state.subscriptions.filter((s) => s.id !== id);
-          if (Platform.OS === 'android') {
-            import('../services/widgetService').then(mod => {
-              mod.updateAndroidWidget(newSubs, state.currency);
-            });
-          }
           return { subscriptions: newSubs };
         });
+
+        // Unlock saver achievement
+        const state = useStore.getState();
+        if (!state.achievements.includes('saver')) {
+          useStore.getState().unlockAchievement('saver');
+        }
       },
-      updateSubscription: async (id, updates) => {
+      updateSubscription: async (id: string, updates: Partial<Subscription>) => {
         const { supabase } = await import('../services/supabase');
         const { data: { session } } = await supabase.auth.getSession();
 
@@ -601,16 +707,11 @@ export const useStore = create<AppState>()(
 
         set((state) => {
           const newSubs = state.subscriptions.map((s) => s.id === id ? { ...s, ...updates } : s);
-          if (Platform.OS === 'android') {
-            import('../services/widgetService').then(mod => {
-              mod.updateAndroidWidget(newSubs, state.currency);
-            });
-          }
           return { subscriptions: newSubs };
         });
       },
-      markSubscriptionPaid: async (id) => {
-        const sub = useStore.getState().subscriptions.find(s => s.id === id);
+      markSubscriptionPaid: async (id: string) => {
+        const sub = get().subscriptions.find((s: Subscription) => s.id === id);
         if (!sub) return;
 
         const { supabase } = await import('../services/supabase');
@@ -628,7 +729,7 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      addTask: async (task) => {
+      addTask: async (task: Task) => {
         // First update local state
         set((state) => ({ tasks: [...state.tasks, task] }));
 
@@ -684,8 +785,8 @@ export const useStore = create<AppState>()(
         }
       },
 
-      toggleTask: async (id) => {
-        const task = useStore.getState().tasks.find(t => t.id === id);
+      toggleTask: async (id: string) => {
+        const task = get().tasks.find((t: Task) => t.id === id);
         if (!task) return;
 
         const { supabase } = await import('../services/supabase');
@@ -703,7 +804,7 @@ export const useStore = create<AppState>()(
         }));
       },
 
-      deleteTask: async (id) => {
+      deleteTask: async (id: string) => {
         const { supabase } = await import('../services/supabase');
         const { data: { session } } = await supabase.auth.getSession();
 
@@ -717,20 +818,20 @@ export const useStore = create<AppState>()(
       },
 
       // Custom Categories
-      addCustomCategory: (name, config) => set((state) => ({
+      addCustomCategory: (name: string, config: any) => set((state: AppState) => ({
         customCategories: { ...state.customCategories, [name]: config }
       })),
-      removeCustomCategory: (name) => set((state) => {
+      removeCustomCategory: (name: string) => set((state: AppState) => {
         const newCats = { ...state.customCategories };
         delete newCats[name];
         return { customCategories: newCats };
       }),
 
-      setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
-      setNotificationTime: (notificationTime) => set({ notificationTime }),
+      setNotificationsEnabled: (notificationsEnabled: boolean) => set({ notificationsEnabled }),
+      setNotificationTime: (notificationTime: string) => set({ notificationTime }),
     }),
     {
-      name: 'lifeos-storage',
+      name: 'luxtra-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         user: state.user,
@@ -742,6 +843,12 @@ export const useStore = create<AppState>()(
         monthlyBudget: state.monthlyBudget,
         notificationsEnabled: state.notificationsEnabled,
         notificationTime: state.notificationTime,
+        streakCount: state.streakCount,
+        lastLoginDate: state.lastLoginDate,
+        longestStreak: state.longestStreak,
+        achievements: state.achievements,
+        freeAiQuestionsUsed: state.freeAiQuestionsUsed,
+        freeAiQuestionResetMonth: state.freeAiQuestionResetMonth,
       }),
     }
   )

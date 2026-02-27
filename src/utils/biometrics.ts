@@ -13,7 +13,7 @@ export async function checkBiometrics(): Promise<boolean> {
 export async function authenticate(isTR: boolean): Promise<boolean> {
   try {
     const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: isTR ? 'LifeOS Kilidini Aç' : 'Unlock LifeOS',
+      promptMessage: isTR ? 'Luxtra Kilidini Aç' : 'Unlock Luxtra',
       fallbackLabel: isTR ? 'Şifre Gir' : 'Enter Passcode',
       cancelLabel: isTR ? 'İptal' : 'Cancel',
       disableDeviceFallback: false,

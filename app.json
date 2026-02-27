@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "LifeOS",
-    "slug": "LifeOS",
+    "name": "Luxtra",
+    "slug": "Luxtra",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "lifeos",
+    "scheme": "luxtra",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -16,16 +16,22 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSFaceIDUsageDescription": "LifeOS needs FaceID to secure your financial data."
+        "NSFaceIDUsageDescription": "Luxtra needs FaceID to secure your financial data."
       }
     },
     "android": {
+      "package": "com.luxtra.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "com.android.vending.BILLING",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -35,25 +41,16 @@
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
         }
-      ],
-      [
-        "react-native-android-widget",
-        {
-          "widgets": [
-            {
-              "name": "PaymentWidget",
-              "label": "LifeOS Widget",
-              "description": "Quick glance at your monthly payments",
-              "minWidth": "180dp",
-              "minHeight": "110dp",
-              "previewImage": "./assets/images/adaptive-icon.png"
-            }
-          ]
-        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4ea4c4e1-a84a-4fb0-a168-b2b1e11bc40a"
+      }
     }
   }
 }

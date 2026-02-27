@@ -1,6 +1,8 @@
+import * as FileSystem from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useRouter } from 'expo-router';
+import { isAvailableAsync, shareAsync } from 'expo-sharing';
 import {
   AlertTriangle,
   Bell,
@@ -10,6 +12,7 @@ import {
   Clock,
   CreditCard,
   Globe,
+  HelpCircle,
   Layers,
   Lock,
   LogOut,
@@ -27,6 +30,7 @@ import {
   Alert,
   Platform,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -47,12 +51,13 @@ export default function SettingsScreen() {
     isBiometricEnabled, toggleBiometric,
     notificationsEnabled, setNotificationsEnabled,
     notificationTime, setNotificationTime,
+    unlockAchievement, achievements,
   } = useStore();
   const c = useThemeColors();
-  const t = translations[language].settings;
+  const t = (translations as any)[language].settings;
   const isTR = language === 'tr';
   const isPro = user?.isPro ?? false;
-  const curr = CURRENCIES[currency] || CURRENCIES.TRY;
+  const curr = CURRENCIES[currency as keyof typeof CURRENCIES] || CURRENCIES.TRY;
 
   const [budgetInput, setBudgetInput] = useState(monthlyBudget > 0 ? monthlyBudget.toString() : '');
   const [showBudgetInput, setShowBudgetInput] = useState(false);
@@ -89,6 +94,40 @@ export default function SettingsScreen() {
     const next = currencyOptions[(idx + 1) % currencyOptions.length];
     setCurrency(next);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleExportData = async () => {
+    try {
+      tap();
+      const csvContent = "Type,Name,Amount,Category,Date\n" +
+        subscriptions.map(s => `Subscription,${s.name},${s.amount},${s.category},${s.nextBillingDate}`).join('\n') + "\n" +
+        tasks.map(t => `Task,${t.title},,${t.type},${t.dueDate}`).join('\n');
+
+      const fileUri = (FileSystem as any).documentDirectory ? (FileSystem as any).documentDirectory + 'Luxtra_Data.csv' : '';
+      if (!fileUri) return;
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, { encoding: (FileSystem as any).EncodingType?.UTF8 || 'utf8' });
+
+      if (await isAvailableAsync()) {
+        await shareAsync(fileUri);
+      } else {
+        Alert.alert("Error", "Sharing is not available on this device");
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert("Error", "Failed to export data");
+    }
+  };
+
+  const handleReferral = async () => {
+    try {
+      tap();
+      const message = isTR
+        ? "Hayatını düzenlemek için Luxtra'yı denemelisin! Bu kodla kaydol: LUXTRA2026"
+        : "You should try Luxtra to organize your life! Use my code: LUXTRA2026";
+      await Share.share({ message });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const tap = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -173,7 +212,7 @@ export default function SettingsScreen() {
               [
                 ...langs.map(l => ({
                   text: labels[l],
-                  onPress: () => { setLanguage(l); tap(); }
+                  onPress: () => { setLanguage(l); tap(); if (!achievements.includes('globe')) unlockAchievement('globe'); }
                 })),
                 { text: isTR ? 'İptal' : 'Cancel', style: 'cancel' }
               ]
@@ -224,23 +263,54 @@ export default function SettingsScreen() {
           </TouchableOpacity>
 
           {/* Theme */}
-          <TouchableOpacity style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]} onPress={() => { tap(); toggleTheme(); }}>
-            <View style={[s.settingIcon, { backgroundColor: c.purple + '15' }]}>
-              {theme === 'dark' ? <Moon size={18} color={c.purple} /> : <Sun size={18} color={c.purple} />}
-            </View>
-            <Text style={[s.settingText, { color: c.offWhite }]}>{t.theme}</Text>
-            <Text style={[s.settingValue, { color: c.muted }]}>
-              {theme === 'dark' ? t.darkMode : t.lightMode}
-            </Text>
-            <ChevronRight size={16} color={c.dim} />
-          </TouchableOpacity>
-
-          {/* Budget — Pro only */}
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => {
               tap();
-              if (!isPro) { router.push('/modal'); return; }
+              const themes: Array<{ id: string, name: string, isPro: boolean }> = [
+                { id: 'light', name: isTR ? 'Aydınlık' : 'Light', isPro: false },
+                { id: 'dark', name: isTR ? 'Karanlık' : 'Dark', isPro: false },
+                { id: 'ocean', name: 'Ocean Blue', isPro: true },
+                { id: 'burgundy', name: 'Burgundy Elite', isPro: true },
+                { id: 'forest', name: 'Forest', isPro: true },
+                { id: 'sunrise', name: 'Sunrise', isPro: true },
+                { id: 'cosmos', name: 'Cosmos', isPro: true },
+              ];
+
+              Alert.alert(
+                isTR ? 'Tema Seçin' : 'Select Theme',
+                '',
+                [
+                  ...themes.map(th => ({
+                    text: `${th.name} ${th.isPro && !isPro ? '(Pro 🔒)' : ''}`,
+                    onPress: () => {
+                      if (th.isPro && !isPro) {
+                        router.push('/modal');
+                      } else {
+                        useStore.getState().setTheme(th.id as any);
+                      }
+                      tap();
+                    }
+                  })),
+                  { text: isTR ? 'İptal' : 'Cancel', style: 'cancel' }
+                ]
+              );
+            }}>
+            <View style={[s.settingIcon, { backgroundColor: c.purple + '15' }]}>
+              {theme === 'dark' || theme === 'ocean' || theme === 'burgundy' || theme === 'forest' || theme === 'cosmos' ? <Moon size={18} color={c.purple} /> : <Sun size={18} color={c.purple} />}
+            </View>
+            <Text style={[s.settingText, { color: c.offWhite }]}>{t.theme}</Text>
+            <Text style={[s.settingValue, { color: c.muted, textTransform: 'capitalize' }]}>
+              {theme === 'dark' ? t.darkMode : theme === 'light' ? t.lightMode : theme}
+            </Text>
+            <ChevronRight size={16} color={c.dim} />
+          </TouchableOpacity>
+
+          {/* Budget — Now FREE for all users */}
+          <TouchableOpacity
+            style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
+            onPress={() => {
+              tap();
               setShowBudgetInput(!showBudgetInput);
             }}
           >
@@ -317,6 +387,19 @@ export default function SettingsScreen() {
 
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
+            onPress={() => { tap(); router.push('/achievements' as any); }}
+          >
+            <View style={[s.settingIcon, { backgroundColor: c.amber + '15' }]}>
+              <Text style={{ fontSize: 16 }}>🏆</Text>
+            </View>
+            <Text style={[s.settingText, { color: c.offWhite }]}>
+              {isTR ? 'Başarımlar' : 'Achievements'}
+            </Text>
+            <ChevronRight size={16} color={c.dim} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => { tap(); router.push('/edit-profile' as any); }}
           >
             <View style={[s.settingIcon, { backgroundColor: c.blue + '15' }]}>
@@ -340,19 +423,42 @@ export default function SettingsScreen() {
               <ChevronRight size={16} color={c.dim} />
             </TouchableOpacity>
           )}
+          {!isPro && (
+            <TouchableOpacity
+              style={s.settingRow}
+              onPress={() => { tap(); router.push('/modal'); }}
+            >
+              <View style={[s.settingIcon, { backgroundColor: c.amber + '15' }]}>
+                <Shield size={18} color={c.amber} />
+              </View>
+              <Text style={[s.settingText, { color: c.offWhite }]}>
+                {isTR ? 'Premium Plana Geç' : 'Upgrade Plan'}
+              </Text>
+              <ChevronRight size={16} color={c.dim} />
+            </TouchableOpacity>
+          )}
+
+
+          {/* About */}
           <TouchableOpacity
             style={s.settingRow}
-            onPress={() => { tap(); router.push('/modal'); }}
+            onPress={() => {
+              tap();
+              Alert.alert(
+                isTR ? "Hakkında" : "About",
+                "Luxtra v1.0.0\nPersonal Life Manager\n\n© 2026 Luxtra",
+                [{ text: "Tamam", style: "default" }]
+              );
+            }}
           >
-            <View style={[s.settingIcon, { backgroundColor: c.amber + '15' }]}>
-              <Shield size={18} color={c.amber} />
+            <View style={[s.settingIcon, { backgroundColor: c.dim + '15' }]}>
+              <HelpCircle size={18} color={c.dim} />
             </View>
             <Text style={[s.settingText, { color: c.offWhite }]}>
-              {isTR ? 'Premium Plana Geç' : 'Upgrade Plan'}
+              {isTR ? 'Uygulama Hakkında' : 'About App'}
             </Text>
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
-
         </View>
 
         {/* Security & Alerts */}
@@ -374,6 +480,7 @@ export default function SettingsScreen() {
                   if (result.success) {
                     toggleBiometric();
                     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    if (!achievements.includes('biometric')) unlockAchievement('biometric');
                   }
                 } else {
                   toggleBiometric();
@@ -468,7 +575,7 @@ export default function SettingsScreen() {
               const { NotificationService } = require('../../src/services/notificationService');
               await NotificationService.scheduleNotification(
                 'test-notif',
-                'LifeOS ⚡',
+                'Luxtra ⚡',
                 isTR ? 'Bu bir test bildirimidir!' : 'This is a test notification!',
                 new Date(Date.now() + 2000), // 2 seconds later
                 { type: 'test' }
@@ -536,6 +643,7 @@ export default function SettingsScreen() {
             </Text>
             <ChevronRight size={16} color={c.red + '80'} />
           </TouchableOpacity>
+
         </View>
 
         {/* Sign Out */}

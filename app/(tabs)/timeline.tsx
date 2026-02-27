@@ -6,6 +6,7 @@ import {
   Alert,
   Animated,
   Platform,
+  RefreshControl,
   SectionList,
   StatusBar,
   StyleSheet,
@@ -14,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import ConfettiCannon from 'react-native-confetti-cannon';
 import SwipeableRow from '../../src/components/SwipeableRow';
 import { TimelineItem } from '../../src/components/timeline/TimelineItem';
 import { FREE_LIMITS } from '../../src/store/proFeatures';
@@ -23,7 +25,7 @@ import { CURRENCIES, useStore } from '../../src/store/useStore';
 
 export default function TimelineScreen() {
   const router = useRouter();
-  const { tasks, subscriptions, language, currency, deleteTask, removeSubscription, user } = useStore();
+  const { tasks, subscriptions, language, currency, deleteTask, toggleTask, removeSubscription, user } = useStore();
   const isPro = user?.isPro ?? false;
   const c = useThemeColors();
   const t = translations[language].timeline;
@@ -33,8 +35,19 @@ export default function TimelineScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const confettiRef = useRef<any>(null);
+
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+  }, []);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
   }, []);
 
   let allItems = [
@@ -110,6 +123,14 @@ export default function TimelineScreen() {
     );
   };
 
+  const handleCompleteTask = (id: string) => {
+    toggleTask(id);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (confettiRef.current) {
+      confettiRef.current.start();
+    }
+  };
+
   const renderItem = ({ item }: { item: any }) => (
     <SwipeableRow onDelete={() => handleDelete(item)} deleteColor={c.red} backgroundColor={c.base}>
       <TimelineItem
@@ -125,6 +146,7 @@ export default function TimelineScreen() {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           if (item.kind === 'payment') router.push(`/subscription/${item.id}`);
         }}
+        onComplete={item.kind === 'responsibility' ? () => handleCompleteTask(item.id) : undefined}
         colors={c}
       />
     </SwipeableRow>
@@ -199,6 +221,15 @@ export default function TimelineScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140 }}
           stickySectionHeadersEnabled={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={c.emerald}
+              colors={[c.emerald]}
+              progressBackgroundColor={c.card}
+            />
+          }
           ListEmptyComponent={
             <View style={[s.empty, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
               <Text style={s.emptyEmoji}>🎯</Text>
@@ -210,6 +241,14 @@ export default function TimelineScreen() {
               </TouchableOpacity>
             </View>
           }
+        />
+        <ConfettiCannon
+          ref={confettiRef}
+          count={50}
+          origin={{ x: -10, y: 0 }}
+          autoStart={false}
+          fadeOut={true}
+          colors={[c.emerald, c.amber, c.blue, c.purple]}
         />
       </Animated.View>
     </View>
@@ -245,7 +284,7 @@ const s = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: -0.2
   },
-  swipeHint: { fontSize: 11, fontWeight: '600', textAlign: 'right', paddingHorizontal: 20, marginBottom: 4, opacity: 0.4 },
+  swipeHint: { fontSize: 11, fontWeight: '600', textAlign: 'center', paddingHorizontal: 20, marginBottom: 4, opacity: 0.4 },
 
   sectionHead: {
     flexDirection: 'row',
@@ -281,10 +320,10 @@ const s = StyleSheet.create({
   kindPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
   kindPillText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 
-  empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, borderRadius: 20, borderWidth: 1, marginTop: 20 },
+  empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, paddingHorizontal: 20, borderRadius: 20, borderWidth: 1, marginTop: 20 },
   emptyEmoji: { fontSize: 36, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: 6 },
-  emptyHint: { fontSize: 14, marginBottom: 20 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: 6, textAlign: 'center' },
+  emptyHint: { fontSize: 14, marginBottom: 20, textAlign: 'center' },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
   emptyBtnText: { color: '#0F1419', fontSize: 14, fontWeight: '700' },
 

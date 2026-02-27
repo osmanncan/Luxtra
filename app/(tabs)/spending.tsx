@@ -5,9 +5,7 @@ import {
   BarChart3,
   CreditCard,
   Plus,
-  Search,
-  TrendingDown,
-  TrendingUp,
+  Search
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -15,6 +13,7 @@ import {
   Animated,
   FlatList,
   Platform,
+  RefreshControl,
   StatusBar,
   StyleSheet,
   Text,
@@ -22,6 +21,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import ConfettiCannon from 'react-native-confetti-cannon';
 import { SpendingInsight } from '../../src/components/spending/SpendingInsight';
 import { SubscriptionItem } from '../../src/components/spending/SubscriptionItem';
 import { SummaryCard } from '../../src/components/spending/SummaryCard';
@@ -44,8 +44,19 @@ export default function SpendingScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const confettiRef = useRef<any>(null);
+
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+  }, []);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
   }, []);
 
   const filteredSubs = searchQuery.trim()
@@ -99,7 +110,10 @@ export default function SpendingScreen() {
 
   const handleMarkPaid = (id: string) => {
     markSubscriptionPaid(id);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (confettiRef.current) {
+      confettiRef.current.start();
+    }
   };
 
   return (
@@ -126,6 +140,15 @@ export default function SpendingScreen() {
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={c.emerald}
+              colors={[c.emerald]}
+              progressBackgroundColor={c.card}
+            />
+          }
           ListHeaderComponent={
             <View>
               <SummaryCard
@@ -147,15 +170,6 @@ export default function SpendingScreen() {
               <View style={s.analyticsContainer}>
                 <Text style={[s.sectionLabel, { color: c.subtle }]}>{t.insightsTitle}</Text>
                 <View style={s.insightsRow}>
-                  <SpendingInsight
-                    icon={totalAll > 1000 ? TrendingUp : TrendingDown}
-                    iconColor={totalAll > 1000 ? c.red : c.emerald}
-                    bgColor={totalAll > 1000 ? c.red + '15' : c.emerald + '15'}
-                    value={totalAll > 1000 ? '+12.4%' : '-5.2%'}
-                    description={totalAll > 1000 ? t.trendMore.replace('{percent}', '12.4') : t.trendLess.replace('{percent}', '5.2')}
-                    colors={c}
-                  />
-
                   {categories.length > 0 && (
                     <SpendingInsight
                       icon={BarChart3}
@@ -244,6 +258,14 @@ export default function SpendingScreen() {
               </TouchableOpacity>
             </View>
           }
+        />
+        <ConfettiCannon
+          ref={confettiRef}
+          count={50}
+          origin={{ x: -10, y: 0 }}
+          autoStart={false}
+          fadeOut={true}
+          colors={[c.emerald, c.amber, c.blue, c.purple]}
         />
       </Animated.View>
     </View>

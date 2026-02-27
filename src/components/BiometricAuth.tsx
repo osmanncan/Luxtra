@@ -58,7 +58,7 @@ export default function BiometricAuth({ children }: BiometricAuthProps) {
     const authenticate = async () => {
         try {
             const result = await LocalAuthentication.authenticateAsync({
-                promptMessage: language === 'tr' ? 'LifeOS Kilidini Aç' : 'Unlock LifeOS',
+                promptMessage: language === 'tr' ? 'Luxtra Kilidini Aç' : 'Unlock Luxtra',
                 fallbackLabel: language === 'tr' ? 'Şifre Gir' : 'Enter Passcode',
                 disableDeviceFallback: false,
                 cancelLabel: language === 'tr' ? 'İptal' : 'Cancel',
@@ -86,7 +86,7 @@ export default function BiometricAuth({ children }: BiometricAuthProps) {
             </View>
 
             <Text style={[s.title, { color: c.offWhite }]}>
-                {language === 'tr' ? 'LifeOS Kilitli' : 'LifeOS Locked'}
+                {language === 'tr' ? 'Luxtra Kilitli' : 'Luxtra Locked'}
             </Text>
 
             <Text style={[s.subtitle, { color: c.subtle }]}>

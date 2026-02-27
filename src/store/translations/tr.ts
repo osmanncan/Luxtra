@@ -79,7 +79,7 @@ export const tr = {
         active: 'Aktif',
         upgradePro: "Pro'ya Yükselt",
         upgradeSubtitle: 'Akıllı öneriler ve sınırsız takip',
-        version: 'LifeOS v1.0.0',
+        version: 'Luxtra v1.0.0',
         budget: 'Aylık Bütçe',
         budgetPlaceholder: 'örn. 5000',
         setBudget: 'Bütçe Belirle',
@@ -133,7 +133,7 @@ export const tr = {
     },
     ai: {
         title: 'Yapay Zeka Asistanı',
-        subtitle: 'Gemini AI ile güçlendirilmiştir',
+        subtitle: '',
         askAnything: 'Finansların hakkında bana her şeyi sor...',
         placeholder: 'Örn: Nasıl para biriktirebilirim?',
         analyzing: 'Veriler analiz ediliyor...',

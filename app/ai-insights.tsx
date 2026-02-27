@@ -13,6 +13,7 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Animated,
     KeyboardAvoidingView,
     Platform,
@@ -31,9 +32,13 @@ import { CURRENCIES, useStore } from '../src/store/useStore';
 
 export default function AIInsightsScreen() {
     const router = useRouter();
-    const { subscriptions, tasks, language, user, currency } = useStore();
+    const { subscriptions, tasks, language, user, currency, freeAiQuestionsUsed, canAskAiFree, useAiQuestion, unlockAchievement, achievements } = useStore();
     const c = useThemeColors();
     const t = translations[language].ai;
+    const isPro = user?.isPro ?? false;
+    const isTR = language === 'tr';
+    const freeRemaining = Math.max(0, 3 - freeAiQuestionsUsed);
+    const canAsk = isPro || canAskAiFree();
 
     const [insight, setInsight] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -53,12 +58,29 @@ export default function AIInsightsScreen() {
         ).start();
     }, []);
 
-    // Auto-load insight 
+    // Auto-load insight for both Pro and free users (if they have quota)
     useEffect(() => {
-        fetchInsight();
-    }, []);
+        if (isPro || canAskAiFree()) {
+            fetchInsight(undefined, true); // auto-load doesn't consume free quota
+        }
+    }, [isPro]);
 
-    const fetchInsight = useCallback(async (customQ?: string) => {
+    const fetchInsight = useCallback(async (customQ?: string, isAutoLoad?: boolean) => {
+        // Check quota for free users (auto-load on first visit is free)
+        if (!isPro && !isAutoLoad) {
+            const allowed = useAiQuestion();
+            if (!allowed) {
+                Alert.alert(
+                    isTR ? 'AI Hakkın Doldu' : 'AI Quota Reached',
+                    isTR ? 'Bu ay 3 ücretsiz AI sorunu kullandın. Sınırsız erişim için Pro\'ya geç!' : 'You\'ve used your 3 free AI questions this month. Upgrade to Pro for unlimited access!',
+                    [
+                        { text: isTR ? 'Tamam' : 'OK', style: 'cancel' },
+                        { text: isTR ? 'Pro\'ya Geç' : 'Go Pro', onPress: () => router.push('/modal') },
+                    ]
+                );
+                return;
+            }
+        }
         setLoading(true);
         try {
             const result = await getAIInsight(
@@ -66,16 +88,20 @@ export default function AIInsightsScreen() {
                 customQ
             );
             setInsight(result);
+            // Unlock AI explorer achievement on first question
+            if (!achievements.includes('ai_curious')) unlockAchievement('ai_curious');
         } catch {
             setInsight(t.error);
         }
         setLoading(false);
-    }, [subscriptions, tasks, language]);
+    }, [subscriptions, tasks, language, isPro]);
 
     const handleAsk = () => {
-        if (question.trim()) {
+        if (question.trim() && canAsk) {
             fetchInsight(question.trim());
             setQuestion('');
+        } else if (!canAsk) {
+            router.push('/modal');
         }
     };
 
@@ -119,7 +145,6 @@ export default function AIInsightsScreen() {
                             <Sparkles size={28} color={c.emerald} />
                         </Animated.View>
                         <Text style={[s.heroTitle, { color: c.offWhite }]}>{t.title}</Text>
-                        <Text style={[s.heroSub, { color: c.subtle }]}>{t.subtitle}</Text>
                     </View>
 
                     {/* Quick Stats */}
@@ -147,10 +172,48 @@ export default function AIInsightsScreen() {
                         </View>
                     </View>
 
+                    {/* Free Quota Banner */}
+                    {!isPro && (
+                        <View style={[s.quotaBanner, { backgroundColor: c.emerald + '10', borderColor: c.emerald + '25' }]}>
+                            <Sparkles size={16} color={c.emerald} />
+                            <Text style={[s.quotaText, { color: c.emerald }]}>
+                                {isTR
+                                    ? `Bu ay ${freeRemaining}/3 ücretsiz AI sorun kaldı`
+                                    : `${freeRemaining}/3 free AI questions remaining`}
+                            </Text>
+                            <TouchableOpacity onPress={() => router.push('/modal')}>
+                                <Text style={[s.quotaUpgrade, { color: c.amber }]}>
+                                    {isTR ? 'Sınırsız →' : 'Unlimited →'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
                     {/* AI Insight Result */}
                     <Text style={[s.sectionLabel, { color: c.subtle }]}>{t.insight}</Text>
-                    <View style={[s.insightCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-                        {loading ? (
+                    <View style={[s.insightCard, { backgroundColor: c.card, borderColor: c.cardBorder, overflow: 'hidden' }]}>
+                        {!canAsk && !insight ? (
+                            <View>
+                                <Text style={[s.insightText, { color: c.offWhite, opacity: 0.15 }]} numberOfLines={5}>
+                                    {isTR
+                                        ? 'Burada harcamalarına göre oluşturulan özel yapay zeka analizlerin yer alır. Bütçeni daha iyi yönetmek için tavsiyeler, aylık abonelik optimizasyonları ve daha fazlasını görmek için Pro özelliklerini açabilirsin.'
+                                        : 'This area contains personalized AI analysis based on your spending. Unlock Pro features for unlimited budget management recommendations and subscription optimizations.'}
+                                </Text>
+                                <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: c.base + 'C0' }]}>
+                                    <TouchableOpacity onPress={() => router.push('/modal')} style={{ alignItems: 'center' }}>
+                                        <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.amber + '20', justifyContent: 'center', alignItems: 'center', marginBottom: 8 }}>
+                                            <Crown size={20} color={c.amber} />
+                                        </View>
+                                        <Text style={{ color: c.offWhite, fontWeight: '700', fontSize: 15, marginBottom: 4 }}>
+                                            {isTR ? 'Sınırsız AI Erişimi' : 'Unlimited AI Access'}
+                                        </Text>
+                                        <Text style={{ color: c.subtle, fontWeight: '500', fontSize: 13, textAlign: 'center', paddingHorizontal: 20 }}>
+                                            {isTR ? 'Bu ayki ücretsiz hakların doldu. Pro ile sınırsız sor!' : 'Monthly free questions used up. Go Pro for unlimited!'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ) : loading ? (
                             <View style={s.loadingWrap}>
                                 <ActivityIndicator size="small" color={c.emerald} />
                                 <Text style={[s.loadingText, { color: c.subtle }]}>{t.analyzing}</Text>
@@ -161,7 +224,7 @@ export default function AIInsightsScreen() {
                                     <Lightbulb size={16} color={c.emerald} />
                                     <Text style={[s.insightTitle, { color: c.emerald }]}>{t.insight}</Text>
                                 </View>
-                                <Text style={[s.insightText, { color: c.muted }]}>{insight}</Text>
+                                <Text style={[s.insightText, { color: c.offWhite }]}>{insight}</Text>
                                 <TouchableOpacity
                                     style={[s.refreshBtn, { backgroundColor: c.emerald + '15' }]}
                                     onPress={() => fetchInsight()}
@@ -181,8 +244,8 @@ export default function AIInsightsScreen() {
                         )}
                     </View>
 
-                    {/* Pro Badge if not pro */}
-                    {!user?.isPro && (
+                    {/* Pro Upgrade — Contextual Upsell */}
+                    {!isPro && (
                         <TouchableOpacity
                             style={[s.proCard, { backgroundColor: c.amber + '10', borderColor: c.amber + '25' }]}
                             onPress={() => router.push('/modal')}
@@ -190,26 +253,33 @@ export default function AIInsightsScreen() {
                         >
                             <Crown size={20} color={c.amber} />
                             <View style={{ flex: 1 }}>
-                                <Text style={[s.proTitle, { color: c.amber }]}>{t.proRequired}</Text>
-                                <Text style={[s.proSub, { color: c.subtle }]}>{t.upgradeForAI}</Text>
+                                <Text style={[s.proTitle, { color: c.amber }]}>
+                                    {isTR ? 'Pro ile Sınırsız AI' : 'Unlimited AI with Pro'}
+                                </Text>
+                                <Text style={[s.proSub, { color: c.subtle }]}>
+                                    {isTR ? 'Kişisel finansal asistanınla her gün konuş' : 'Chat with your personal financial assistant daily'}
+                                </Text>
                             </View>
                         </TouchableOpacity>
                     )}
                 </ScrollView>
 
-                {/* Ask AI Input */}
+                {/* Ask AI Input — now available to free users too */}
                 <View style={[s.inputBar, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                     <TextInput
                         style={[s.textInput, { color: c.offWhite }]}
                         value={question}
                         onChangeText={setQuestion}
-                        placeholder={t.placeholder}
+                        placeholder={canAsk
+                            ? t.placeholder
+                            : (isTR ? 'AI hakkın doldu — Pro ile devam et' : 'AI quota reached — upgrade to Pro')}
                         placeholderTextColor={c.dim}
                         onSubmitEditing={handleAsk}
                         returnKeyType="send"
+                        editable={canAsk}
                     />
                     <TouchableOpacity
-                        style={[s.sendBtn, { backgroundColor: question.trim() ? c.emerald : c.dim }]}
+                        style={[s.sendBtn, { backgroundColor: question.trim() && canAsk ? c.emerald : c.dim }]}
                         onPress={handleAsk}
                         disabled={!question.trim()}
                     >
@@ -407,7 +477,7 @@ const s = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+        paddingBottom: Platform.OS === 'ios' ? 44 : 20,
         borderTopWidth: 1,
         gap: 10,
     },
@@ -426,4 +496,9 @@ const s = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+
+    /* Free AI Quota */
+    quotaBanner: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, padding: 12, borderRadius: 12, borderWidth: 1, gap: 10, marginBottom: 20 },
+    quotaText: { fontSize: 13, fontWeight: '700', flex: 1 },
+    quotaUpgrade: { fontSize: 13, fontWeight: '700' },
 });

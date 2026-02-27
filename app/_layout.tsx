@@ -11,7 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as QuickActions from 'expo-quick-actions';
 import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { useColorScheme } from 'react-native';
-import "../global.css";
+
 import BiometricAuth from '../src/components/BiometricAuth';
 import { useStore } from '../src/store/useStore';
 
@@ -77,14 +77,30 @@ export default function RootLayout() {
 
     // Supabase Auth Listener
     import('../src/services/supabase').then(({ supabase }) => {
-      supabase.auth.onAuthStateChange((_event, session) => {
+      supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
           useStore.getState().setUser({
             name: session.user.user_metadata.full_name || 'Kullanıcı',
             email: session.user.email!,
-            isPro: false // NORMAL MODE: Pro is turned off by default for testing Paywall
+            isPro: false // Pro is OFF by default — only activated after real Play Store purchase
           });
           useStore.getState().syncData();
+
+          // Identify user in RevenueCat & check real Pro status from Play Store
+          try {
+            const { PurchaseService } = await import('../src/services/purchaseService');
+            await PurchaseService.identifyUser(session.user.id);
+            const isPro = await PurchaseService.checkProStatus();
+            if (isPro) {
+              useStore.getState().setUser({
+                name: session.user.user_metadata.full_name || 'Kullanıcı',
+                email: session.user.email!,
+                isPro: true,
+              });
+            }
+          } catch (e) {
+            console.log('[Luxtra] RevenueCat check skipped (not available):', e);
+          }
         } else {
           useStore.getState().setUser(null);
         }
@@ -158,6 +174,8 @@ function RootLayoutNav() {
             <Stack.Screen name="edit-profile" options={{ headerShown: false, presentation: 'modal' }} />
             <Stack.Screen name="ai-insights" options={{ headerShown: false, presentation: 'modal' }} />
             <Stack.Screen name="register" options={{ headerShown: false }} />
+            <Stack.Screen name="manage-categories" options={{ headerShown: false, presentation: 'modal' }} />
+            <Stack.Screen name="achievements" options={{ headerShown: false, presentation: 'modal' }} />
           </Stack>
         </BiometricAuth>
       </ThemeProvider>
