@@ -1,5 +1,5 @@
 {
-  "expo":  {
+  "expo": {
     "name": "Luxtra",
     "slug": "Luxtra",
     "version": "1.0.0",
@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#030712"
     },
     "ios": {
       "supportsTablet": true,

@@ -12,6 +12,8 @@ import * as QuickActions from 'expo-quick-actions';
 import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { useColorScheme } from 'react-native';
 
+import { View } from 'react-native';
+import AnimatedSplashScreen from '../src/components/AnimatedSplashScreen';
 import BiometricAuth from '../src/components/BiometricAuth';
 import { useStore } from '../src/store/useStore';
 
@@ -40,6 +42,7 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = React.useState(false);
+  const [splashFinished, setSplashFinished] = React.useState(false);
 
   useQuickActionRouting();
 
@@ -166,7 +169,12 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <View style={{ flex: 1 }}>
+      <RootLayoutNav />
+      {!splashFinished && <AnimatedSplashScreen onFinish={() => setSplashFinished(true)} />}
+    </View>
+  );
 }
 
 function RootLayoutNav() {
