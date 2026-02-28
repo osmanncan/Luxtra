@@ -1,11 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowRight, Globe, Lock, Mail, Shield, User } from 'lucide-react-native';
+import { ArrowRight, Globe, Lock, Mail, User } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
     Animated,
+    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -116,9 +117,10 @@ export default function RegisterScreen() {
 
                     <Animated.View style={[s.logoArea, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
                         <View style={s.logoCircle}>
-                            <LinearGradient colors={['#10B981', '#059669']} style={s.logoGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                                <Shield size={28} color="#FFFFFF" strokeWidth={2.5} />
-                            </LinearGradient>
+                            <Image
+                                source={require('../assets/images/icon.png')}
+                                style={{ width: '100%', height: '100%', borderRadius: 32, zIndex: 2 }}
+                            />
                             <View style={s.logoGlow} />
                         </View>
                         <Text style={s.brand}>
