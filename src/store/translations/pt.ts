@@ -198,3 +198,4 @@ export const pt = {
         success: 'Assinatura atualizada!',
     },
 };
+

@@ -79,3 +79,4 @@ const s = StyleSheet.create({
     paidText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.3 },
     payBtn: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5 },
 });
+

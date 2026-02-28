@@ -198,3 +198,4 @@ export const de = {
         success: 'Abonnement aktualisiert!',
     },
 };
+

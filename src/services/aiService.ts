@@ -197,3 +197,4 @@ function generateLocalInsight(context: AIContext): string {
     const shuffled = [...pool].sort((a, b) => Math.sin(seed + pool.indexOf(a) * 137) - Math.sin(seed + pool.indexOf(b) * 137));
     return shuffled.slice(0, 2).join('\n\n');
 }
+

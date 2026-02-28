@@ -198,3 +198,4 @@ export const tr = {
         success: 'Abonelik güncellendi!',
     },
 };
+

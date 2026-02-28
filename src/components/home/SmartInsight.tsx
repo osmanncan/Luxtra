@@ -68,3 +68,4 @@ const s = StyleSheet.create({
         fontWeight: '700',
     },
 });
+

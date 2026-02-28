@@ -35,3 +35,4 @@ const s = StyleSheet.create({
     upcomingDate: { fontSize: 11, fontWeight: '600', marginTop: 2 },
     upcomingAmount: { fontSize: 15, fontWeight: '700' },
 });
+

@@ -39,3 +39,4 @@ const s = StyleSheet.create({
     insightValue: { fontSize: 15, fontWeight: '700' },
     insightDesc: { fontSize: 12, fontWeight: '500', marginTop: 1 },
 });
+

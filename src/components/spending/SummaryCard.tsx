@@ -114,3 +114,4 @@ const s = StyleSheet.create({
     catText: { fontSize: 11, fontWeight: '600' },
     catAmount: { fontSize: 11, fontWeight: '700' },
 });
+

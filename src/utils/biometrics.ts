@@ -24,3 +24,4 @@ export async function authenticate(isTR: boolean): Promise<boolean> {
     return false;
   }
 }
+

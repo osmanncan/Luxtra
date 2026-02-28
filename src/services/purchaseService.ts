@@ -175,3 +175,4 @@ export const PurchaseService = {
         return isNativeAvailable && Purchases !== null;
     },
 };
+

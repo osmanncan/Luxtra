@@ -198,3 +198,4 @@ export const ar = {
         success: 'تم تحديث الاشتراك!',
     },
 };
+
