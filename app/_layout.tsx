@@ -16,12 +16,12 @@ import BiometricAuth from '../src/components/BiometricAuth';
 import { useStore } from '../src/store/useStore';
 
 export {
-  
+
   ErrorBoundary
 } from 'expo-router';
 
 export const unstable_settings = {
-  
+
   initialRouteName: '(tabs)',
 };
 SplashScreen.preventAutoHideAsync();
@@ -72,7 +72,7 @@ export default function RootLayout() {
           useStore.getState().setUser({
             name: session.user.user_metadata.full_name || 'Kullanıcı',
             email: session.user.email!,
-            isPro: false 
+            isPro: false
           });
           useStore.getState().syncData();
           try {
@@ -108,7 +108,7 @@ export default function RootLayout() {
           await new Promise(resolve => setTimeout(resolve, 100));
           await SplashScreen.hideAsync();
         } catch (e) {
-          
+
         } finally {
           splashHidden.current = true;
           setIsReady(true);
@@ -118,6 +118,35 @@ export default function RootLayout() {
     hideSplashScreen();
   }, [loaded]);
 
+  // Deep Link handling for Supabase Auth (e.g. Email Confirmations / Magic Links)
+  useEffect(() => {
+    import('expo-linking').then((Linking) => {
+      const handleDeepLink = async (event: { url: string }) => {
+        if (!event.url) return;
+
+        const urlObj = new URL(event.url.replace('#', '?'));
+        const refreshToken = urlObj.searchParams.get('refresh_token');
+        const accessToken = urlObj.searchParams.get('access_token');
+
+        if (accessToken && refreshToken) {
+          const { supabase } = await import('../src/services/supabase');
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+        }
+      };
+
+      const subscription = Linking.addEventListener('url', handleDeepLink);
+
+      Linking.getInitialURL().then((url) => {
+        if (url) handleDeepLink({ url });
+      });
+
+      return () => subscription.remove();
+    });
+  }, []);
+
   useEffect(() => {
     if (!isReady) return;
 
@@ -125,10 +154,10 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'onboarding';
 
     if (!user && inTabsGroup) {
-      
+
       router.replace('/onboarding');
     } else if (user && inAuthGroup) {
-      
+
       router.replace('/(tabs)');
     }
   }, [isReady, user, segments]);
