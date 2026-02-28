@@ -21,11 +21,17 @@
 
 - **Framework:** [React Native](https://reactnative.dev) / [Expo](https://expo.dev/) 
 - **Routing:** [Expo Router](https://docs.expo.dev/router/introduction/)
-- **State Management:** [Zustand](https://github.com/pmndrs/zustand)
+- **State/Storage:** [Zustand](https://github.com/pmndrs/zustand) & [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
 - **Styling:** [NativeWind](https://www.nativewind.dev/) (Tailwind CSS)
-- **Database & Auth:** [Supabase](https://supabase.com/)
-- **AI Service:** [Google Generative AI](https://ai.google.dev/)
-- **Monetization:** [RevenueCat](https://www.revenuecat.com/)
+
+### ☁️ Serverless Backend Architecture
+- **Database (BaaS):** [Supabase (PostgreSQL)](https://supabase.com/) with strict Row Level Security (RLS) policies.
+- **Edge Functions (Deno):**
+  - `handle-revenuecat-webhook`: Securely verifies JWT/Authorization headers and syncs Apple/Google subscription events to user metadata.
+  - `handle-ai-chat`: Acts as a secure proxy and quota manager for AI requests, protecting private API keys and preventing billing exhaustion.
+- **AI Service:** [Google Gemini 1.5 Pro](https://ai.google.dev/) (Routed through Edge Functions)
+- **Payments:** [RevenueCat](https://www.revenuecat.com/) for cross-platform subscription management.
+- **Auth:** Supabase Auth (Asymmetric Encrypted Passwords + Magic Links/Deep Linking via `expo-linking`)
 
 ## 🚀 Getting Started
 
