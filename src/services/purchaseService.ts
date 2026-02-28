@@ -18,9 +18,9 @@ try {
 // !! IMPORTANT: Replace this with your REAL RevenueCat API key from https://app.revenuecat.com
 // For Google Play: Use the "Google Play" platform API key
 const REVENUE_CAT_API_KEY = Platform.select({
-    android: 'test_vLWaXCIZEPMvlHPQzLyORISxUiK',
-    ios: 'test_vLWaXCIZEPMvlHPQzLyORISxUiK',
-    default: 'test_vLWaXCIZEPMvlHPQzLyORISxUiK',
+    android: process.env.EXPO_PUBLIC_REVENUE_CAT_API_KEY_ANDROID,
+    ios: process.env.EXPO_PUBLIC_REVENUE_CAT_API_KEY_IOS,
+    default: process.env.EXPO_PUBLIC_REVENUE_CAT_API_KEY_ANDROID,
 });
 
 export const PurchaseService = {
