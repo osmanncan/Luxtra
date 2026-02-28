@@ -41,7 +41,7 @@ export default function SwipeableRow({
                 return Math.abs(gesture.dx) > 8 && Math.abs(gesture.dy) < 15;
             },
             onPanResponderGrant: () => {
-                // If open and user starts swiping, capture the gesture
+                
             },
             onPanResponderMove: (_, gesture) => {
                 if (gesture.dx < 0) {
@@ -78,7 +78,7 @@ export default function SwipeableRow({
 
     return (
         <View style={s.container}>
-            {/* Delete button behind the row */}
+            {}
             <View style={[s.deleteAction, { backgroundColor: deleteColor + '18' }]}>
                 <TouchableOpacity
                     style={[s.deleteBtn, { backgroundColor: deleteColor }]}
@@ -90,12 +90,12 @@ export default function SwipeableRow({
                 </TouchableOpacity>
             </View>
 
-            {/* Foreground row — sits on top with higher zIndex */}
+            {}
             <Animated.View
                 style={[s.foreground, { transform: [{ translateX }], backgroundColor }]}
                 {...panResponder.panHandlers}
             >
-                {/* Invisible tap catcher to close swipe when tapping open row */}
+                {}
                 {children}
             </Animated.View>
         </View>

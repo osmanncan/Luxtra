@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
@@ -31,14 +31,32 @@ serve(async (req) => {
     if (userError || !userData?.user) {
       return new Response(JSON.stringify({ error: "Oturum süresi dolmuş veya geçersiz." }), { status: 200, headers });
     }
+    const userMeta = userData.user.user_metadata || {};
+    const isPro = userMeta.is_pro === true;
+    const currentMonth = new Date().toISOString().slice(0, 7); 
+    const savedMetaMonth = userMeta.free_ai_month;
+    let freeUsed = parseInt(userMeta.free_ai_used) || 0;
+    if (savedMetaMonth !== currentMonth) {
+       freeUsed = 0;
+    }
+
+    if (!isPro && freeUsed >= 3) {
+       return new Response(JSON.stringify({ error: "LIMIT_REACHED" }), { status: 200, headers });
+    }
 
     const { prompt } = await req.json();
     if (!prompt) {
        return new Response(JSON.stringify({ error: "Soru boş olamaz." }), { status: 200, headers });
     }
-
-    // Attempt to use Google Gemini API since the Grok key was revoked/invalid.
-    // Ensure you have set: npx supabase secrets set GEMINI_API_KEY=your_key
+    if (!isPro) {
+       await supabase.auth.admin.updateUserById(userData.user.id, {
+          user_metadata: {
+             ...userMeta,
+             free_ai_month: currentMonth,
+             free_ai_used: freeUsed + 1
+          }
+       });
+    }
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
     
     if (geminiKey) {
@@ -63,8 +81,6 @@ serve(async (req) => {
            if (replyText) return new Response(JSON.stringify({ reply: replyText.trim() }), { headers });
         }
     }
-
-    // If Gemini fails or isn't set, try Grok (incase user sets a valid key again)
     const grokKey = Deno.env.get("GROK_API_KEY");
     if (grokKey) {
         const response = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -89,9 +105,6 @@ serve(async (req) => {
             if (replyText) return new Response(JSON.stringify({ reply: replyText }), { headers });
         }
     }
-
-    // Use a hard error to force the frontend to use its beautiful Local Fallback
-    // instead of showing an unprofessional "busy" text.
     return new Response(JSON.stringify({ error: "API_KEY_INVALID" }), { status: 200, headers });
 
   } catch (error: any) {

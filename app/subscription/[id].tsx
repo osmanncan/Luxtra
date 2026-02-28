@@ -42,16 +42,12 @@ export default function SubscriptionDetails() {
     const subId = Array.isArray(id) ? id[0] : id;
     const sub = subscriptions.find((s) => s.id === subId);
     const [isEditing, setIsEditing] = useState(false);
-
-    // Form state
     const [name, setName] = useState(sub?.name || '');
     const [amount, setAmount] = useState(sub?.amount.toString() || '');
     const [desc, setDesc] = useState(sub?.description || '');
     const [category, setCategory] = useState(sub?.category || 'General');
     const [cycle, setCycle] = useState<'monthly' | 'yearly'>(sub?.billingCycle || 'monthly');
     const [day, setDay] = useState(sub ? new Date(sub.nextBillingDate).getDate().toString() : '');
-
-    // Reminder state
     const [reminderType, setReminderType] = useState<'days' | 'months' | 'custom'>(
         sub?.reminderDate ? 'custom' : (sub?.reminderDays && sub.reminderDays >= 30 ? 'months' : 'days')
     );
@@ -152,8 +148,6 @@ export default function SubscriptionDetails() {
             reminderDate: reminderDateValue,
             reminderDays: calculatedReminderDays,
         });
-
-        // Reschedule Notification if not paid
         if (!sub.isPaid) {
             const { NotificationService } = require('../../src/services/notificationService');
             let remindDate: Date | null = null;
@@ -619,7 +613,7 @@ const s = StyleSheet.create({
         fontSize: 15,
         fontWeight: '700',
     },
-    /* Reminder Styles */
+    
     reminderTypeTabs: {
         flexDirection: 'row',
         borderRadius: 14,

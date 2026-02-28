@@ -16,19 +16,15 @@ import BiometricAuth from '../src/components/BiometricAuth';
 import { useStore } from '../src/store/useStore';
 
 export {
-  // Catch any errors thrown by the Layout component.
+  
   ErrorBoundary
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
+  
   initialRouteName: '(tabs)',
 };
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
-// Ignore specific warnings/errors that are unavoidable in Expo Go SDK 54
 LogBox.ignoreLogs([
   'SafeAreaView has been deprecated',
   'expo-notifications: Android Push notifications',
@@ -64,29 +60,21 @@ export default function RootLayout() {
         params: { href: '/add-responsibility' },
       },
     ]);
-
-    // Request notification permissions
     import('../src/services/notificationService').then(({ NotificationService }) => {
       NotificationService.requestPermissions();
     });
-
-    // Initialize RevenueCat
     import('../src/services/purchaseService').then(({ PurchaseService }) => {
       PurchaseService.initialize();
     });
-
-    // Supabase Auth Listener
     import('../src/services/supabase').then(({ supabase }) => {
       supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
           useStore.getState().setUser({
             name: session.user.user_metadata.full_name || 'Kullanıcı',
             email: session.user.email!,
-            isPro: false // Pro is OFF by default — only activated after real Play Store purchase
+            isPro: false 
           });
           useStore.getState().syncData();
-
-          // Identify user in RevenueCat & check real Pro status from Play Store
           try {
             const { PurchaseService } = await import('../src/services/purchaseService');
             await PurchaseService.identifyUser(session.user.id);
@@ -107,8 +95,6 @@ export default function RootLayout() {
       });
     });
   }, []);
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -119,12 +105,10 @@ export default function RootLayout() {
     async function hideSplashScreen() {
       if (loaded && !splashHidden.current) {
         try {
-          // Delaying hideAsync by 100ms often resolves "No native splash screen" errors 
-          // that happen during rapid navigation or initialization.
           await new Promise(resolve => setTimeout(resolve, 100));
           await SplashScreen.hideAsync();
         } catch (e) {
-          // Ignore errors like "No native splash screen"
+          
         } finally {
           splashHidden.current = true;
           setIsReady(true);
@@ -141,10 +125,10 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'onboarding';
 
     if (!user && inTabsGroup) {
-      // Giriş yapmamışsa Onboarding/Login ekranına gönder
+      
       router.replace('/onboarding');
     } else if (user && inAuthGroup) {
-      // Giriş yapmışsa ama login/register/onboarding ekranındaysa tabs'e gönder
+      
       router.replace('/(tabs)');
     }
   }, [isReady, user, segments]);

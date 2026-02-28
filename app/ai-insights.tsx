@@ -49,7 +49,7 @@ export default function AIInsightsScreen() {
 
     useEffect(() => {
         Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
-        // Pulse animation for the AI icon
+        
         Animated.loop(
             Animated.sequence([
                 Animated.timing(pulseAnim, { toValue: 1.1, duration: 1000, useNativeDriver: true }),
@@ -57,16 +57,14 @@ export default function AIInsightsScreen() {
             ])
         ).start();
     }, []);
-
-    // Auto-load insight for both Pro and free users (if they have quota)
     useEffect(() => {
         if (isPro || canAskAiFree()) {
-            fetchInsight(undefined, true); // auto-load doesn't consume free quota
+            fetchInsight(undefined, true); 
         }
     }, [isPro]);
 
     const fetchInsight = useCallback(async (customQ?: string, isAutoLoad?: boolean) => {
-        // Check quota for free users (auto-load on first visit is free)
+        
         if (!isPro && !isAutoLoad) {
             const allowed = useAiQuestion();
             if (!allowed) {
@@ -88,7 +86,7 @@ export default function AIInsightsScreen() {
                 customQ
             );
             setInsight(result);
-            // Unlock AI explorer achievement on first question
+            
             if (!achievements.includes('ai_curious')) unlockAchievement('ai_curious');
         } catch {
             setInsight(t.error);
@@ -104,8 +102,6 @@ export default function AIInsightsScreen() {
             router.push('/modal');
         }
     };
-
-    // Quick stats
     const totalMonthly = subscriptions
         .filter(s => s.billingCycle === 'monthly')
         .reduce((a, c_) => a + c_.amount, 0);
@@ -126,7 +122,7 @@ export default function AIInsightsScreen() {
             <StatusBar barStyle={c.statusBarStyle} />
 
             <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-                {/* Header */}
+                {}
                 <View style={s.header}>
                     <TouchableOpacity onPress={() => router.back()} style={[s.backBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                         <ArrowLeft size={20} color={c.offWhite} />
@@ -139,7 +135,7 @@ export default function AIInsightsScreen() {
                 </View>
 
                 <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-                    {/* AI Hero Card */}
+                    {}
                     <View style={[s.heroCard, { backgroundColor: c.emerald + '12', borderColor: c.emerald + '25' }]}>
                         <Animated.View style={[s.aiIconWrap, { transform: [{ scale: pulseAnim }] }]}>
                             <Sparkles size={28} color={c.emerald} />
@@ -147,7 +143,7 @@ export default function AIInsightsScreen() {
                         <Text style={[s.heroTitle, { color: c.offWhite }]}>{t.title}</Text>
                     </View>
 
-                    {/* Quick Stats */}
+                    {}
                     <Text style={[s.sectionLabel, { color: c.subtle }]}>{t.suggestions}</Text>
                     <View style={s.statsRow}>
                         <View style={[s.statCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
@@ -172,7 +168,7 @@ export default function AIInsightsScreen() {
                         </View>
                     </View>
 
-                    {/* Free Quota Banner */}
+                    {}
                     {!isPro && (
                         <View style={[s.quotaBanner, { backgroundColor: c.emerald + '10', borderColor: c.emerald + '25' }]}>
                             <Sparkles size={16} color={c.emerald} />
@@ -189,7 +185,7 @@ export default function AIInsightsScreen() {
                         </View>
                     )}
 
-                    {/* AI Insight Result */}
+                    {}
                     <Text style={[s.sectionLabel, { color: c.subtle }]}>{t.insight}</Text>
                     <View style={[s.insightCard, { backgroundColor: c.card, borderColor: c.cardBorder, overflow: 'hidden' }]}>
                         {!canAsk && !insight ? (
@@ -244,7 +240,7 @@ export default function AIInsightsScreen() {
                         )}
                     </View>
 
-                    {/* Pro Upgrade — Contextual Upsell */}
+                    {}
                     {!isPro && (
                         <TouchableOpacity
                             style={[s.proCard, { backgroundColor: c.amber + '10', borderColor: c.amber + '25' }]}
@@ -264,7 +260,7 @@ export default function AIInsightsScreen() {
                     )}
                 </ScrollView>
 
-                {/* Ask AI Input — now available to free users too */}
+                {}
                 <View style={[s.inputBar, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                     <TextInput
                         style={[s.textInput, { color: c.offWhite }]}
@@ -321,8 +317,6 @@ const s = StyleSheet.create({
         fontWeight: '700',
         letterSpacing: -0.3,
     },
-
-    /* Hero */
     heroCard: {
         marginHorizontal: 20,
         borderRadius: 20,
@@ -351,8 +345,6 @@ const s = StyleSheet.create({
         fontWeight: '500',
         textAlign: 'center',
     },
-
-    /* Stats */
     sectionLabel: {
         fontSize: 11,
         fontWeight: '700',
@@ -387,8 +379,6 @@ const s = StyleSheet.create({
         fontSize: 12,
         fontWeight: '700',
     },
-
-    /* Insight */
     insightCard: {
         marginHorizontal: 20,
         borderRadius: 16,
@@ -449,8 +439,6 @@ const s = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
     },
-
-    /* Pro Card */
     proCard: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -470,8 +458,6 @@ const s = StyleSheet.create({
         fontWeight: '500',
         marginTop: 2,
     },
-
-    /* Input Bar */
     inputBar: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -496,8 +482,6 @@ const s = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-
-    /* Free AI Quota */
     quotaBanner: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, padding: 12, borderRadius: 12, borderWidth: 1, gap: 10, marginBottom: 20 },
     quotaText: { fontSize: 13, fontWeight: '700', flex: 1 },
     quotaUpgrade: { fontSize: 13, fontWeight: '700' },

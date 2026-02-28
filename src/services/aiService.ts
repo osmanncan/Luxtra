@@ -64,8 +64,6 @@ User's current data:
     if (userQuestion) {
         return `${systemPrompt}\n\nUser asks: ${userQuestion}`;
     }
-
-    // Rotate focus area based on time of day for variety
     const hour = new Date().getHours();
     const focusArea = hour < 10 ? 'morning motivation and planning' :
         hour < 14 ? 'spending optimization' :
@@ -100,7 +98,7 @@ export async function getAIInsight(context: AIContext, userQuestion?: string): P
 
             if (data?.error) {
                 console.warn("API Error:", data.error);
-                return generateLocalInsight(context); // Fail silently into beautiful local fallback
+                return generateLocalInsight(context); 
             }
 
             if (data?.reply) {
@@ -116,8 +114,6 @@ export async function getAIInsight(context: AIContext, userQuestion?: string): P
         return generateLocalInsight(context);
     }
 }
-
-// Smart local insights when API is not available
 function generateLocalInsight(context: AIContext): string {
     const { subscriptions, tasks, language } = context;
 
@@ -191,8 +187,6 @@ function generateLocalInsight(context: AIContext): string {
     if (pool.length === 0) {
         return language === 'tr' ? '✨ Her şey yolunda görünüyor!' : '✨ Everything looks on track!';
     }
-
-    // Shuffle using time seed for variety each call
     const seed = Date.now();
     const shuffled = [...pool].sort((a, b) => Math.sin(seed + pool.indexOf(a) * 137) - Math.sin(seed + pool.indexOf(b) * 137));
     return shuffled.slice(0, 2).join('\n\n');

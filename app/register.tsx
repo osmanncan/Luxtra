@@ -208,9 +208,6 @@ export default function RegisterScreen() {
                                 )}
                             </LinearGradient>
                         </TouchableOpacity>
-
-
-
                         <Text style={s.terms}>
                             {isTR
                                 ? 'Kayıt olarak Kullanım Şartlarını ve Gizlilik Politikasını kabul etmiş olursun.'

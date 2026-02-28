@@ -82,7 +82,7 @@ function AnimatedTabItem({
                     },
                 ]}
             >
-                {/* Background glow */}
+                {}
                 <Animated.View
                     style={[
                         s.tabBg,
@@ -97,7 +97,7 @@ function AnimatedTabItem({
                     <Icon size={22} color={iconColor} strokeWidth={isFocused ? 2.5 : 1.8} />
                 )}
 
-                {/* Active indicator dot */}
+                {}
                 <Animated.View
                     style={[
                         s.activeDot,
@@ -237,5 +237,3 @@ const s = StyleSheet.create({
         letterSpacing: 0.3,
     },
 });
-
-

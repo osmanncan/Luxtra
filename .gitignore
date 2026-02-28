@@ -44,3 +44,13 @@ TODO.md
 # generated native folders
 /ios
 /android
+
+# High Security & Certificates
+play-store-key.json
+google-services.json
+GoogleService-Info.plist
+*.keystore
+
+# Supabase Local
+supabase/.temp/
+supabase/.branch/

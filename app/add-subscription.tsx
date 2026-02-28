@@ -448,8 +448,6 @@ const st = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
   },
-
-  /* Reminder */
   reminderTypeTabs: {
     flexDirection: 'row',
     borderRadius: 14,
@@ -508,8 +506,6 @@ const st = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
-
-  /* Custom date modal */
   modalOverlay: {
     flex: 1,
     backgroundColor: '#00000080',

@@ -1,9 +1,9 @@
-// @ts-nocheck
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 serve(async (req) => {
-  // Define CORS rules
+  
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -14,7 +14,13 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')!;
+    const authHeader = req.headers.get('Authorization');
+    
+    const expectedAuthHeader = Deno.env.get("REVENUECAT_WEBHOOK_SECRET");
+    if (!expectedAuthHeader || authHeader !== expectedAuthHeader) {
+      return new Response("Unauthorized Webhook Access", { status: 401, headers });
+    }
+
     const bodyText = await req.text();
     let payload;
 
@@ -23,44 +29,25 @@ serve(async (req) => {
     } catch (e) {
       return new Response("Invalid JSON", { status: 400, headers });
     }
-
-    // Initialize Supabase Admin Client
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Parse RevenueCat Payload
     const event = payload?.event;
     if (!event) {
       return new Response("No event found", { status: 400, headers });
     }
 
     const { type, app_user_id, product_id, environment } = event;
-
-    // Optional: Ignore Sandbox events if you only want Production. 
-    // Here we'll process both.
-
     console.log(`[RC Webhook] Received ${type} for user ${app_user_id}`);
-
-    // If app_user_id is not a valid uuid mapping to our auth.users, skip or handle accordingly.
-    // Assuming app_user_id IS the Supabase user UUID.
-    
-    // Check if the event means they are actively entitled to "Pro"
-    // Usually, INITIAL_PURCHASE and RENEWAL mean active.
-    // CANCELLATION means auto-renew is off, but they might still have time remaining. 
-    // EXPIRATION means it actually expired.
-    
     let isProStatus = false;
     if (["INITIAL_PURCHASE", "RENEWAL", "UNCANCELLATION"].includes(type)) {
       isProStatus = true;
     } else if (["CANCELLATION", "EXPIRATION", "BILLING_ISSUE"].includes(type)) {
       isProStatus = false;
     } else {
-      // Ignored events (TEST, NON_RENEWING_PURCHASE, etc)
+      
       return new Response(JSON.stringify({ received: true, ignored: true }), { headers });
     }
-
-    // Log the action to perform
     console.log(`[RC Webhook] Setting user ${app_user_id} is_pro to ${isProStatus}`);
 
     const { error } = await supabase.auth.admin.updateUserById(

@@ -17,21 +17,21 @@ import { useThemeColors } from '../src/store/theme';
 import { SUB_CATEGORIES, useStore } from '../src/store/useStore';
 
 const PRESET_COLORS = [
-    ['#ef4444', '#f87171'], // Red
-    ['#f97316', '#fb923c'], // Orange
-    ['#f59e0b', '#fbbf24'], // Amber
-    ['#10b981', '#34d399'], // Emerald
-    ['#06b6d4', '#22d3ee'], // Cyan
-    ['#0ea5e9', '#38bdf8'], // Light Blue
-    ['#3b82f6', '#60a5fa'], // Blue
-    ['#6366f1', '#818cf8'], // Indigo
-    ['#8b5cf6', '#a78bfa'], // Violet
-    ['#7c3aed', '#a855f7'], // Purple
-    ['#ec4899', '#f472b6'], // Pink
-    ['#f43f5e', '#fb7185'], // Rose
-    ['#14b8a6', '#2dd4bf'], // Teal
-    ['#84cc16', '#a3e635'], // Lime
-    ['#64748b', '#94a3b8'], // Slate
+    ['#ef4444', '#f87171'], 
+    ['#f97316', '#fb923c'], 
+    ['#f59e0b', '#fbbf24'], 
+    ['#10b981', '#34d399'], 
+    ['#06b6d4', '#22d3ee'], 
+    ['#0ea5e9', '#38bdf8'], 
+    ['#3b82f6', '#60a5fa'], 
+    ['#6366f1', '#818cf8'], 
+    ['#8b5cf6', '#a78bfa'], 
+    ['#7c3aed', '#a855f7'], 
+    ['#ec4899', '#f472b6'], 
+    ['#f43f5e', '#fb7185'], 
+    ['#14b8a6', '#2dd4bf'], 
+    ['#84cc16', '#a3e635'], 
+    ['#64748b', '#94a3b8'], 
 ];
 
 const QUICK_EMOJIS = ['⭐', '🏠', '🚗', '🍔', '🛒', '✈️', '💻', '🎮', '🎧', '🏋️', '🐱', '🐾', '💡', '🛡️', '💰', '📅'];
@@ -76,7 +76,7 @@ export default function ManageCategoriesScreen() {
 
     return (
         <View style={[s.container, { backgroundColor: c.base }]}>
-            {/* Header */}
+            {}
             <View style={s.header}>
                 <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
                     <ArrowLeft size={24} color={c.offWhite} />
@@ -90,7 +90,7 @@ export default function ManageCategoriesScreen() {
             </View>
 
             <ScrollView contentContainerStyle={s.content}>
-                {/* Default Categories */}
+                {}
                 <Text style={[s.sectionTitle, { color: c.subtle }]}>
                     {isTR ? 'Varsayılan' : 'Default'}
                 </Text>
@@ -108,7 +108,7 @@ export default function ManageCategoriesScreen() {
                     ))}
                 </View>
 
-                {/* Custom Categories */}
+                {}
                 <Text style={[s.sectionTitle, { color: c.subtle, marginTop: 24 }]}>
                     {isTR ? 'Özel' : 'Custom'}
                 </Text>
@@ -134,7 +134,7 @@ export default function ManageCategoriesScreen() {
                 )}
             </ScrollView>
 
-            {/* Add Modal Overlay */}
+            {}
             {isAdding && (
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -157,7 +157,7 @@ export default function ManageCategoriesScreen() {
                                     placeholder="😃"
                                     placeholderTextColor={c.dim}
                                     value={newEmoji}
-                                    onChangeText={t => setNewEmoji(t.slice(-2))} // Handle potential multi-char emojis
+                                    onChangeText={t => setNewEmoji(t.slice(-2))} 
                                     maxLength={4}
                                 />
                             </View>
@@ -236,8 +236,6 @@ const s = StyleSheet.create({
 
     emptyBox: { padding: 30, alignItems: 'center', borderWidth: 1, borderStyle: 'dashed', borderRadius: 16 },
     emptyText: { fontSize: 14 },
-
-    /* Modal */
     modalOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', padding: 20, zIndex: 100 },
     modalCard: { borderRadius: 20, padding: 24, borderWidth: 1 },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },

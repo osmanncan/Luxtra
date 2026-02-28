@@ -63,7 +63,7 @@ export default function EditProfileScreen() {
                 style={{ flex: 1 }}
             >
                 <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-                    {/* Header */}
+                    {}
                     <View style={s.header}>
                         <TouchableOpacity onPress={() => router.back()} style={[s.backBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                             <ArrowLeft size={20} color={c.offWhite} />
@@ -73,7 +73,7 @@ export default function EditProfileScreen() {
                     </View>
 
                     <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-                        {/* Avatar Section */}
+                        {}
                         <View style={s.avatarSection}>
                             <View style={[s.avatarLarge, { backgroundColor: c.emerald }]}>
                                 <Text style={s.avatarLargeText}>{name[0]?.toUpperCase() || 'U'}</Text>
@@ -84,9 +84,9 @@ export default function EditProfileScreen() {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Form */}
+                        {}
                         <View style={s.form}>
-                            {/* Name */}
+                            {}
                             <View style={s.fieldWrap}>
                                 <Text style={[s.fieldLabel, { color: c.subtle }]}>{t.name}</Text>
                                 <View style={[s.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
@@ -102,7 +102,7 @@ export default function EditProfileScreen() {
                                 </View>
                             </View>
 
-                            {/* Email */}
+                            {}
                             <View style={s.fieldWrap}>
                                 <Text style={[s.fieldLabel, { color: c.subtle }]}>{t.email}</Text>
                                 <View style={[s.inputWrap, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
@@ -120,7 +120,7 @@ export default function EditProfileScreen() {
                             </View>
                         </View>
 
-                        {/* Save Button */}
+                        {}
                         <View style={s.saveSection}>
                             <TouchableOpacity
                                 style={[
@@ -173,8 +173,6 @@ const s = StyleSheet.create({
         fontWeight: '700',
         letterSpacing: -0.3,
     },
-
-    /* Avatar */
     avatarSection: {
         alignItems: 'center',
         marginBottom: 36,
@@ -205,8 +203,6 @@ const s = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
     },
-
-    /* Form */
     form: {
         gap: 20,
         marginBottom: 32,
@@ -235,8 +231,6 @@ const s = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
-
-    /* Save */
     saveSection: {
         paddingHorizontal: 0,
     },

@@ -37,7 +37,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, compact }) =
           task.isCompleted && { opacity: 0.5 },
         ]}
       >
-        {/* Left accent bar */}
+        {}
         <View
           style={[
             styles.accent,
@@ -45,7 +45,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, compact }) =
           ]}
         />
 
-        {/* Checkbox */}
+        {}
         <TouchableOpacity
           onPress={() => onToggle(task.id)}
           activeOpacity={0.6}
@@ -59,7 +59,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onToggle, compact }) =
           {task.isCompleted && <Check size={12} color="#fff" strokeWidth={3} />}
         </TouchableOpacity>
 
-        {/* Content */}
+        {}
         <View style={{ flex: 1 }}>
           <Text
             style={[

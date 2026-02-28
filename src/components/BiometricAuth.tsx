@@ -21,8 +21,6 @@ export default function BiometricAuth({ children }: BiometricAuthProps) {
     const appState = useRef(AppState.currentState);
     const [isLocked, setIsLocked] = useState(false);
     const [hasHardware, setHasHardware] = useState(false);
-
-    // Only check lock on initial mount if enabled
     useEffect(() => {
         checkHardware();
         if (isBiometricEnabled) {
@@ -30,8 +28,6 @@ export default function BiometricAuth({ children }: BiometricAuthProps) {
             authenticate();
         }
     }, []);
-
-    // Monitor app state changes (background -> active)
     useEffect(() => {
         const subscription = AppState.addEventListener('change', nextAppState => {
             if (
@@ -75,8 +71,6 @@ export default function BiometricAuth({ children }: BiometricAuthProps) {
     if (!isLocked) {
         return <>{children}</>;
     }
-
-    // Locked Screen UI
     return (
         <View style={[s.container, { backgroundColor: c.base }]}>
             <View style={s.iconContainer}>

@@ -1,8 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-// ── Category config with emoji + gradient colors ──
 export const SUB_CATEGORIES: Record<string, { emoji: string; colors: [string, string] }> = {
   Entertainment: { emoji: '🎬', colors: ['#7c3aed', '#a855f7'] },
   Music: { emoji: '🎵', colors: ['#ec4899', '#f472b6'] },
@@ -51,8 +49,8 @@ export interface Subscription {
   description?: string;
   isPaid?: boolean;
   paidDate?: string;
-  reminderDays?: number; // default: 1
-  reminderDate?: string; // custom notification date
+  reminderDays?: number; 
+  reminderDate?: string; 
 }
 
 export interface User {
@@ -71,8 +69,8 @@ export interface Task {
   type: 'life';
   isRecurring: boolean;
   recurringMonths: number;
-  reminderDays?: number; // default: 1
-  reminderDate?: string; // custom notification date
+  reminderDays?: number; 
+  reminderDate?: string; 
 }
 
 export type ThemeMode = 'dark' | 'light' | 'ocean' | 'burgundy' | 'forest' | 'sunrise' | 'cosmos';
@@ -80,8 +78,6 @@ export type ThemeMode = 'dark' | 'light' | 'ocean' | 'burgundy' | 'forest' | 'su
 interface AppState {
   subscriptions: Subscription[];
   tasks: Task[];
-
-  // Auth
   user: User | null;
   setUser: (user: User | null) => void;
   login: (email?: string, password?: string) => Promise<
@@ -95,45 +91,29 @@ interface AppState {
     | { success: true; error?: undefined; needsConfirmation?: undefined; message?: undefined }
   >;
   logout: () => Promise<void>;
-
-  // Profile
   updateProfile: (updates: Partial<User>) => Promise<void>;
-
-  // Settings
   language: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar';
   setLanguage: (lang: 'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar') => Promise<void>;
   currency: string;
   setCurrency: (currency: string) => Promise<void>;
-
-  // Theme
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
-
-  // Budget
   monthlyBudget: number;
   setMonthlyBudget: (amount: number) => void;
-
-  // Security
   isBiometricEnabled: boolean;
   toggleBiometric: () => void;
-
-  // Pro Membership
   upgradeToPro: (pkg?: any) => Promise<boolean>;
   cancelPro: () => void;
   refreshProStatus: () => Promise<void>;
   restorePurchases: () => Promise<boolean>;
-
-  // AI Insights
   aiInsight: string | null;
   aiLoading: boolean;
   setAiInsight: (insight: string | null) => void;
   setAiLoading: (loading: boolean) => void;
-
-  // Free AI Quota (3 per month)
   freeAiQuestionsUsed: number;
-  freeAiQuestionResetMonth: string; // 'YYYY-MM'
-  useAiQuestion: () => boolean; // returns true if question was allowed
+  freeAiQuestionResetMonth: string; 
+  useAiQuestion: () => boolean; 
   canAskAiFree: () => boolean;
 
   addSubscription: (sub: Subscription) => Promise<void>;
@@ -144,25 +124,21 @@ interface AppState {
   addTask: (task: Task) => Promise<void>;
   toggleTask: (id: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
-
-  // Custom Categories
   customCategories: Record<string, CategoryConfig>;
   addCustomCategory: (name: string, config: CategoryConfig) => void;
   removeCustomCategory: (name: string) => void;
-
-  // Notification Settings
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
-  notificationTime: string; // HH:mm format
+  notificationTime: string; 
   setNotificationTime: (time: string) => void;
-  // Streak & Achievements
+  
   streakCount: number;
   lastLoginDate: string | null;
   longestStreak: number;
   achievements: string[];
   recordLogin: () => void;
   unlockAchievement: (id: string) => void;
-  paywallVariant: 'A' | 'B'; // A/B test mock flag
+  paywallVariant: 'A' | 'B'; 
   syncData: () => Promise<void>;
 }
 
@@ -199,7 +175,7 @@ export const useStore = create<AppState>()(
         }
         
         if (state.lastLoginDate === todayStr) {
-          return; // Already logged in today
+          return; 
         }
         
         const lastDate = new Date(state.lastLoginDate);
@@ -229,7 +205,7 @@ export const useStore = create<AppState>()(
         });
       },
 
-      user: null as User | null, // Start with null
+      user: null as User | null, 
       setUser: (user) => set({ user }),
 
       login: async (email, password) => {
@@ -266,13 +242,20 @@ export const useStore = create<AppState>()(
 
       syncData: async () => {
         const { supabase } = await import('../services/supabase');
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) return;
+
+        const currentUser = get().user;
+        const isProReal = user.user_metadata?.is_pro === true;
+
+        if (currentUser && currentUser.isPro !== isProReal) {
+           set({ user: { ...currentUser, isPro: isProReal } });
+        }
 
         try {
           const [subsRes, tasksRes] = await Promise.all([
-            supabase.from('subscriptions').select('*').eq('user_id', session.user.id),
-            supabase.from('tasks').select('*').eq('user_id', session.user.id)
+            supabase.from('subscriptions').select('*').eq('user_id', user.id),
+            supabase.from('tasks').select('*').eq('user_id', user.id)
           ]);
 
           if (subsRes.data) {
@@ -329,8 +312,6 @@ export const useStore = create<AppState>()(
         });
 
         if (error) return { success: false, error: error.message };
-
-        // If data.user is defined but session is null, it means confirmation is required
         if (data.user && !data.session) {
           return {
             success: true,
@@ -383,8 +364,6 @@ export const useStore = create<AppState>()(
         const oldCurrency = state.currency;
 
         set({ language: lang, currency: newCurrency });
-
-        // Convert existing subscription amounts if currency actually changed
         if (oldCurrency !== newCurrency && state.subscriptions.length > 0) {
           try {
             const { CurrencyService } = await import('../services/currencyService');
@@ -399,8 +378,6 @@ export const useStore = create<AppState>()(
                   currency: sub.currency === oldCurrency ? newCurrency : sub.currency,
                 }))
               }));
-
-              // Also convert budget
               if (state.monthlyBudget > 0) {
                 set({ monthlyBudget: state.monthlyBudget * conversionRate });
               }
@@ -430,8 +407,6 @@ export const useStore = create<AppState>()(
                   currency: sub.currency === oldCurrency ? newCurrency : sub.currency,
                 }))
               }));
-
-              // Also convert budget
               if (state.monthlyBudget > 0) {
                 set({ monthlyBudget: state.monthlyBudget * conversionRate });
               }
@@ -441,24 +416,16 @@ export const useStore = create<AppState>()(
           }
         }
       },
-
-      // Theme
       setTheme: (theme) => set({ theme }),
       toggleTheme: () => set((state) => {
         const fallback = state.theme === 'dark' ? 'light' : 'dark';
         if (state.theme !== 'dark' && state.theme !== 'light') {
-          return { theme: 'dark' }; // if premium theme is active, toggling goes to basic dark
+          return { theme: 'dark' }; 
         }
         return { theme: fallback };
       }),
-
-      // Budget
       setMonthlyBudget: (amount) => set({ monthlyBudget: amount }),
-
-      // Security
       toggleBiometric: () => set((state) => ({ isBiometricEnabled: !state.isBiometricEnabled })),
-
-      // Pro Membership — Real Play Store purchases only
       upgradeToPro: async (pkg: any) => {
         try {
           const { PurchaseService } = await import('../services/purchaseService');
@@ -474,9 +441,6 @@ export const useStore = create<AppState>()(
             set((state: AppState) => ({ user: state.user ? { ...state.user, isPro: true } : null }));
             return true;
           }
-
-          // Purchase did not succeed — DO NOT grant Pro
-          // The error type is logged for debugging; UI handles user-facing messages
           if (result.error !== 'USER_CANCELLED') {
             console.warn('[Luxtra] Purchase failed:', result.error);
           }
@@ -509,12 +473,8 @@ export const useStore = create<AppState>()(
           return false;
         }
       },
-
-      // AI Insights
       setAiInsight: (insight) => set({ aiInsight: insight }),
       setAiLoading: (loading) => set({ aiLoading: loading }),
-
-      // Free AI Quota
       canAskAiFree: (): boolean => {
         const state = get();
         const currentMonth = new Date().toISOString().slice(0, 7);
@@ -607,13 +567,11 @@ export const useStore = create<AppState>()(
       ] as Task[],
 
       addSubscription: async (sub: Subscription) => {
-        // First update local state for better UX
+        
         set((state) => {
           const newSubs = [...state.subscriptions, sub];
           return { subscriptions: newSubs };
         });
-
-        // Notification logic
         try {
           const { NotificationService } = await import('../services/notificationService');
           const billingDate = new Date(sub.nextBillingDate);
@@ -678,8 +636,6 @@ export const useStore = create<AppState>()(
           const newSubs = state.subscriptions.filter((s) => s.id !== id);
           return { subscriptions: newSubs };
         });
-
-        // Unlock saver achievement
         const state = useStore.getState();
         if (!state.achievements.includes('saver')) {
           useStore.getState().unlockAchievement('saver');
@@ -730,10 +686,8 @@ export const useStore = create<AppState>()(
       },
 
       addTask: async (task: Task) => {
-        // First update local state
+        
         set((state) => ({ tasks: [...state.tasks, task] }));
-
-        // Notification logic
         try {
           const { NotificationService } = await import('../services/notificationService');
           const dueDate = new Date(task.dueDate);
@@ -816,8 +770,6 @@ export const useStore = create<AppState>()(
           tasks: state.tasks.filter((t) => t.id !== id),
         }));
       },
-
-      // Custom Categories
       addCustomCategory: (name: string, config: any) => set((state: AppState) => ({
         customCategories: { ...state.customCategories, [name]: config }
       })),

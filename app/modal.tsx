@@ -29,8 +29,6 @@ export default function PaywallScreen() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 50, friction: 10, useNativeDriver: true }),
     ]).start();
-
-    // Fetch real packages from RevenueCat
     const loadOfferings = async () => {
       try {
         const { PurchaseService } = await import('../src/services/purchaseService');
@@ -46,7 +44,7 @@ export default function PaywallScreen() {
   }, []);
 
   const handlePurchase = async () => {
-    // Check if packages are available (won't be in Expo Go)
+    
     if (!packages || packages.length === 0) {
       Alert.alert(
         isTR ? 'Bilgi' : 'Info',
@@ -82,7 +80,7 @@ export default function PaywallScreen() {
           [{ text: 'OK', onPress: () => router.back() }]
         );
       }
-      // If success is false but no error thrown, the user likely cancelled — do nothing
+      
     } catch (e) {
       console.error('[Luxtra] Purchase error in paywall:', e);
       Alert.alert(
@@ -191,7 +189,7 @@ export default function PaywallScreen() {
       <StatusBar barStyle={c.statusBarStyle} />
 
       <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-        {/* Header */}
+        {}
         <View style={s.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={[s.closeBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
             <X size={20} color={c.offWhite} />
@@ -199,7 +197,7 @@ export default function PaywallScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          {/* Hero */}
+          {}
           <View style={s.hero}>
             <View style={[s.heroIcon, { backgroundColor: c.emerald + '15' }]}>
               <Sparkles size={32} color={c.emerald} />
@@ -212,7 +210,7 @@ export default function PaywallScreen() {
             </Text>
           </View>
 
-          {/* FOMO banner \u2014 dynamic */}
+          {}
           <View style={[s.fomoBanner, { backgroundColor: c.amber + '15', borderColor: c.amber + '30' }]}>
             <Text style={[s.fomoText, { color: c.amber }]}>
               {[
@@ -224,7 +222,7 @@ export default function PaywallScreen() {
             </Text>
           </View>
 
-          {/* Testimonial \u2014 rotating */}
+          {}
           <View style={[s.testimonialCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
             {(() => {
               const testimonials = isTR ? [
@@ -246,7 +244,7 @@ export default function PaywallScreen() {
             })()}
           </View>
 
-          {/* ── COMPARISON TABLE ── */}
+          {}
           <View style={s.compSection}>
             <View style={s.compHeader}>
               <View style={{ flex: 1 }} />
@@ -291,7 +289,7 @@ export default function PaywallScreen() {
             })}
           </View>
 
-          {/* ── KEY BENEFITS ── */}
+          {}
           <View style={s.benefitsSection}>
             <Text style={[s.sectionLabel, { color: c.subtle }]}>
               {isTR ? 'PRO AVANTAJLARI' : 'PRO BENEFITS'}
@@ -313,13 +311,13 @@ export default function PaywallScreen() {
             </View>
           </View>
 
-          {/* ── PRICING ── */}
+          {}
           <View style={s.pricingSection}>
             <Text style={[s.sectionLabel, { color: c.subtle }]}>
               {isTR ? 'PLAN SEÇ' : 'CHOOSE YOUR PLAN'}
             </Text>
 
-            {/* Monthly */}
+            {}
             <TouchableOpacity
               style={[s.planCard, {
                 backgroundColor: c.card,
@@ -344,7 +342,7 @@ export default function PaywallScreen() {
               <Text style={[s.planPeriod, { color: c.subtle }]}>/{isTR ? 'ay' : 'mo'}</Text>
             </TouchableOpacity>
 
-            {/* Yearly */}
+            {}
             <TouchableOpacity
               style={[s.planCard, {
                 backgroundColor: c.card,
@@ -372,11 +370,9 @@ export default function PaywallScreen() {
                 </View>
               </View>
             </TouchableOpacity>
-
-
           </View>
 
-          {/* ── CTA ── */}
+          {}
           <View style={s.ctaSection}>
             <TouchableOpacity
               style={[s.ctaBtn, { backgroundColor: c.emerald, opacity: loading ? 0.7 : 1 }]}
@@ -413,7 +409,7 @@ export default function PaywallScreen() {
             </Text>
           </View>
 
-          {/* Free plan note */}
+          {}
           <View style={[s.freeNote, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
             <Text style={[s.freeNoteTitle, { color: c.offWhite }]}>
               {isTR ? '🆓 Ücretsiz olarak devam et' : '🆓 Continue for free'}
@@ -434,21 +430,15 @@ const s = StyleSheet.create({
   container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 60 : 44 },
   headerRow: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 20, marginBottom: 8 },
   closeBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
-
-  /* Hero */
   hero: { alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
   heroIcon: { width: 72, height: 72, borderRadius: 36, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   heroTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, marginBottom: 6 },
   heroSub: { fontSize: 15, fontWeight: '500', textAlign: 'center' },
-
-  /* FOMO & Testimonial */
   fomoBanner: { marginHorizontal: 20, padding: 12, borderRadius: 12, borderWidth: 1, alignItems: 'center', marginBottom: 16 },
   fomoText: { fontSize: 13, fontWeight: '700' },
   testimonialCard: { marginHorizontal: 20, padding: 16, borderRadius: 14, borderWidth: 1, marginBottom: 28 },
   testimonialText: { fontSize: 14, fontStyle: 'italic', fontWeight: '500', marginBottom: 8, lineHeight: 20 },
   testimonialAuthor: { fontSize: 12, fontWeight: '600', textAlign: 'right' },
-
-  /* Comparison */
   compSection: { marginHorizontal: 20, marginBottom: 28, borderRadius: 16, overflow: 'hidden' },
   compHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12 },
   compColHeader: { width: 60, alignItems: 'center', paddingVertical: 6, borderRadius: 8 },
@@ -459,8 +449,6 @@ const s = StyleSheet.create({
   compCheck: { width: 60, alignItems: 'center' },
   checkCircle: { width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center' },
   xCircle: { width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center' },
-
-  /* Benefits */
   benefitsSection: { paddingHorizontal: 20, marginBottom: 28 },
   sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 12, marginLeft: 4 },
   benefitsGrid: { gap: 10 },
@@ -468,8 +456,6 @@ const s = StyleSheet.create({
   benefitIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   benefitTitle: { fontSize: 14, fontWeight: '700', flex: 1 },
   benefitSub: { fontSize: 11, fontWeight: '500', width: 120, textAlign: 'right' },
-
-  /* Pricing */
   pricingSection: { paddingHorizontal: 20, marginBottom: 28 },
   planCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 18, gap: 14, marginBottom: 10 },
   planRadio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
@@ -480,19 +466,13 @@ const s = StyleSheet.create({
   planPeriod: { fontSize: 13, fontWeight: '600', marginLeft: 2 },
   saveBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, marginTop: 4 },
   saveText: { fontSize: 10, fontWeight: '700' },
-
-  /* CTA */
   ctaSection: { paddingHorizontal: 20, marginBottom: 20, alignItems: 'center' },
   ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', paddingVertical: 18, borderRadius: 16 },
   ctaBtnText: { color: '#0F1419', fontSize: 17, fontWeight: '800' },
   ctaNote: { fontSize: 12, fontWeight: '500', marginTop: 10 },
-
-  /* Free Note */
   freeNote: { marginHorizontal: 20, borderRadius: 14, padding: 18, borderWidth: 1, alignItems: 'center', marginBottom: 40 },
   freeNoteTitle: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
   freeNoteDesc: { fontSize: 12, fontWeight: '500', textAlign: 'center' },
-
-  /* Pro Active */
   proActiveContent: { paddingHorizontal: 20, paddingBottom: 60 },
   proActiveCard: { alignItems: 'center', borderRadius: 20, padding: 32, borderWidth: 1, marginBottom: 24 },
   proBadgeL: { width: 72, height: 72, borderRadius: 36, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },

@@ -37,16 +37,12 @@ export default function OverviewScreen() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
-
-  // Staggered card entrance animations
   const card1Anim = useRef(new Animated.Value(0)).current;
   const card2Anim = useRef(new Animated.Value(0)).current;
   const card3Anim = useRef(new Animated.Value(0)).current;
   const card1Slide = useRef(new Animated.Value(30)).current;
   const card2Slide = useRef(new Animated.Value(30)).current;
   const card3Slide = useRef(new Animated.Value(30)).current;
-
-  // Score count-up
   const [displayScore, setDisplayScore] = useState(0);
 
   useEffect(() => {
@@ -54,8 +50,6 @@ export default function OverviewScreen() {
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, tension: 50, friction: 10, useNativeDriver: true }),
     ]).start();
-
-    // Staggered card entries
     Animated.stagger(120, [
       Animated.parallel([
         Animated.timing(card1Anim, { toValue: 1, duration: 500, useNativeDriver: true }),
@@ -87,11 +81,11 @@ export default function OverviewScreen() {
   }, [syncData]);
 
   useEffect(() => {
-    // Streak achievements
+    
     if (streakCount >= 3 && !achievements.includes('streak_3')) unlockAchievement('streak_3');
     if (streakCount >= 7 && !achievements.includes('streak_7')) {
       unlockAchievement('streak_7');
-      // Prompt for review on day 7 streak
+      
       setTimeout(async () => {
         try {
           if (await StoreReview.hasAction()) {
@@ -103,18 +97,12 @@ export default function OverviewScreen() {
     if (streakCount >= 30 && !achievements.includes('streak_30')) unlockAchievement('streak_30');
     if (streakCount >= 90 && !achievements.includes('streak_90')) unlockAchievement('streak_90');
     if (streakCount >= 365 && !achievements.includes('streak_365')) unlockAchievement('streak_365');
-
-    // Pro & content-based achievements
     if (isPro && !achievements.includes('pro_user')) unlockAchievement('pro_user');
     if (subscriptions.length > 0 && !achievements.includes('first_sub')) unlockAchievement('first_sub');
     if (tasks.length > 0 && !achievements.includes('first_task')) unlockAchievement('first_task');
     if (subscriptions.length >= 5 && !achievements.includes('subs_5')) unlockAchievement('subs_5');
-
-    // Task completion count
     const completedTasks = tasks.filter(t2 => t2.isCompleted).length;
     if (completedTasks >= 10 && !achievements.includes('tasks_10')) unlockAchievement('tasks_10');
-
-    // Budget set achievement
     if (monthlyBudget > 0 && !achievements.includes('budgeter')) unlockAchievement('budgeter');
   }, [streakCount, isPro, subscriptions.length, tasks, achievements, monthlyBudget]);
 
@@ -134,14 +122,12 @@ export default function OverviewScreen() {
   const lifeScore = Math.round(paymentScore + taskScore + budgetScore + streakScore);
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return '#3b82f6'; // excellent
-    if (score >= 70) return '#10B981'; // good
-    if (score >= 40) return '#F59E0B'; // avg
-    return '#EF4444'; // poor
+    if (score >= 90) return '#3b82f6'; 
+    if (score >= 70) return '#10B981'; 
+    if (score >= 40) return '#F59E0B'; 
+    return '#EF4444'; 
   };
   const scoreColor = getScoreColor(lifeScore);
-
-  // Score count-up animation
   useEffect(() => {
     let frame = 0;
     const totalFrames = 30;
@@ -247,7 +233,7 @@ export default function OverviewScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Top category insight with staggered animation */}
+          {}
           <Animated.View style={{ opacity: card1Anim, transform: [{ translateY: card1Slide }] }}>
             {topCategory ? (
               <View style={[s.trackCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
@@ -345,7 +331,7 @@ export default function OverviewScreen() {
               </View>
             )}
 
-            {/* Replaced with the Top Category banner above */}
+            {}
 
             {!isPro && (
               <TouchableOpacity
@@ -455,8 +441,6 @@ const s = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-
-  /* Track Card */
   trackCard: {
     borderRadius: 16,
     padding: 18,
@@ -493,8 +477,6 @@ const s = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-
-  /* Spending Card */
   spendCard: {
     borderRadius: 20,
     padding: 22,
@@ -522,8 +504,6 @@ const s = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-
-  /* Budget */
   budgetSection: {
     marginBottom: 14,
   },
@@ -566,8 +546,6 @@ const s = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-
-  /* Section */
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -582,8 +560,6 @@ const s = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-
-  /* Upcoming */
   upcomingCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -617,8 +593,6 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
   },
-
-  /* Empty */
   emptyCard: {
     alignItems: 'flex-start',
     padding: 24,
@@ -633,8 +607,6 @@ const s = StyleSheet.create({
   emptySub: {
     fontSize: 13,
   },
-
-  /* Insight */
   insightCard: {
     borderRadius: 16,
     padding: 18,
@@ -667,8 +639,6 @@ const s = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-
-  /* Upgrade banner */
   upgradeCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 18, borderWidth: 1, gap: 14, marginBottom: 20, marginTop: 12 },
   upgradeIcon: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   upgradeTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },

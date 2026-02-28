@@ -298,8 +298,6 @@ const s = StyleSheet.create({
   catDot: { width: 8, height: 8, borderRadius: 4 },
   catText: { fontSize: 11, fontWeight: '600' },
   catAmount: { fontSize: 11, fontWeight: '700' },
-
-  /* Analytics */
   analyticsContainer: { marginBottom: 24 },
   sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginBottom: 12, textTransform: 'uppercase' },
   insightsRow: { gap: 10 },
@@ -337,8 +335,6 @@ const s = StyleSheet.create({
   emptySub: { fontSize: 13, marginBottom: 12 },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
   emptyBtnText: { color: '#0F1419', fontSize: 14, fontWeight: '700' },
-
-  /* Slot counter */
   slotBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 12 },
   slotText: { fontSize: 12, fontWeight: '700' },
   slotUpgrade: { fontSize: 12, fontWeight: '700' },

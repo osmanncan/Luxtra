@@ -49,7 +49,7 @@ export const NotificationService = {
         if (triggerDate.getTime() <= Date.now()) return null;
 
         try {
-            // Hata buradaydı: trigger tipini açıkça belirtiyoruz
+            
             return await Notifications.scheduleNotificationAsync({
                 content: {
                     title,
@@ -58,7 +58,7 @@ export const NotificationService = {
                     sound: true,
                 },
                 trigger: {
-                    type: Notifications.SchedulableTriggerInputTypes.DATE, // Tip eklendi
+                    type: Notifications.SchedulableTriggerInputTypes.DATE, 
                     date: triggerDate,
                 } as any,
                 identifier: id,
@@ -73,7 +73,7 @@ export const NotificationService = {
         try {
             await Notifications.cancelScheduledNotificationAsync(identifier);
         } catch (error) {
-            // Bildirim bulunamadıysa görmezden gel
+            
         }
     },
 

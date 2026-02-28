@@ -40,13 +40,9 @@ export default function AddResponsibility() {
     const [daysDue, setDaysDue] = useState('');
     const [isRecurring, setIsRecurring] = useState(false);
     const [recurringMonths, setRecurringMonths] = useState('');
-
-    // Reminder state
     const [reminderType, setReminderType] = useState<'days' | 'months' | 'custom'>('days');
     const [reminderDays, setReminderDays] = useState(1);
     const [reminderMonths, setReminderMonths] = useState(1);
-
-    // Custom date picker state
     const [showCustomDate, setShowCustomDate] = useState(false);
     const [customDay, setCustomDay] = useState('');
     const [customMonth, setCustomMonth] = useState('');
@@ -359,8 +355,6 @@ const s = StyleSheet.create({
         fontSize: 17,
         fontWeight: '600',
     },
-
-    /* Hero */
     heroCard: {
         alignItems: 'center',
         borderRadius: 20,
@@ -385,8 +379,6 @@ const s = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
     },
-
-    /* Form */
     label: {
         fontSize: 11,
         fontWeight: '700',
@@ -412,8 +404,6 @@ const s = StyleSheet.create({
         fontSize: 13,
         fontWeight: '500',
     },
-
-    /* Reminder */
     reminderTypeTabs: {
         flexDirection: 'row',
         borderRadius: 14,
@@ -448,8 +438,6 @@ const s = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
     },
-
-    /* Info */
     infoCard: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -466,8 +454,6 @@ const s = StyleSheet.create({
         fontWeight: '500',
         flex: 1,
     },
-
-    /* Save */
     saveBtn: {
         borderRadius: 14,
         paddingVertical: 18,
@@ -477,8 +463,6 @@ const s = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
     },
-
-    /* Recurring */
     recurToggle: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -515,8 +499,6 @@ const s = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
     },
-
-    /* Custom date modal */
     modalOverlay: {
         flex: 1,
         backgroundColor: '#00000080',

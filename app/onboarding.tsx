@@ -151,7 +151,7 @@ export default function OnboardingScreen() {
         <View style={s.container}>
             <StatusBar barStyle="light-content" />
 
-            {/* Header */}
+            {}
             <View style={s.topRow}>
                 <TouchableOpacity onPress={toggleLang} style={s.langBtn}>
                     <Globe size={14} color="#94A3B8" />
@@ -163,7 +163,7 @@ export default function OnboardingScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* Slider */}
+            {}
             <ScrollView
                 ref={scrollRef}
                 horizontal
@@ -185,16 +185,16 @@ export default function OnboardingScreen() {
                 ))}
             </ScrollView>
 
-            {/* Footer Navigation */}
+            {}
             <View style={s.footerContainer}>
-                {/* Pagination Dots */}
+                {}
                 <View style={s.dots}>
                     {t.slides.map((_: any, i: number) => (
                         <View key={i} style={[s.dot, i === currentIndex && s.activeDot]} />
                     ))}
                 </View>
 
-                {/* Main Action Button */}
+                {}
                 {currentIndex === 2 ? (
                     <TouchableOpacity style={[s.btn, s.btnPrimary]} onPress={handleStart} activeOpacity={0.85}>
                         <Text style={s.btnTextPrimary}>{t.start}</Text>
@@ -334,6 +334,6 @@ const s = StyleSheet.create({
         fontWeight: '700',
     },
     btn: {
-        // base styling
+        
     },
 });

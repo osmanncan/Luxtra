@@ -154,9 +154,6 @@ export default function LoginScreen() {
                                 )}
                             </LinearGradient>
                         </TouchableOpacity>
-
-
-
                     </Animated.View>
 
                     <Animated.View style={[s.footer, { opacity: fadeAnim }]}>

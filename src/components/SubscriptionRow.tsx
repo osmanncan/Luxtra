@@ -29,7 +29,7 @@ export const SubscriptionRow: React.FC<Props> = ({ sub, onPress }) => {
           <Text style={styles.emoji}>{cat.emoji}</Text>
         </View>
 
-        {/* Info */}
+        {}
         <View style={{ flex: 1 }}>
           <Text style={styles.name}>{sub.name}</Text>
           <Text style={[styles.meta, isUpcoming && { color: TrustPalette.emerald }]}> 
@@ -41,7 +41,7 @@ export const SubscriptionRow: React.FC<Props> = ({ sub, onPress }) => {
           </Text>
         </View>
 
-        {/* Amount */}
+        {}
         <View style={styles.amountWrap}>
           <Text style={styles.amount}>
             {sub.currency === 'USD' ? '$' : '₺'}

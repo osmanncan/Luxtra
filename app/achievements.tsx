@@ -48,7 +48,7 @@ export default function AchievementsScreen() {
         <View style={[s.container, { backgroundColor: c.base }]}>
             <StatusBar barStyle="light-content" />
 
-            {/* Premium Header */}
+            {}
             <View style={s.header}>
                 <TouchableOpacity
                     onPress={() => router.back()}
@@ -71,7 +71,7 @@ export default function AchievementsScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
-                {/* Hero Stats Card */}
+                {}
                 <View style={[s.heroCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                     <View style={s.heroMain}>
                         <View style={[s.heroIconWrap, { backgroundColor: c.emerald + '15' }]}>
@@ -87,7 +87,7 @@ export default function AchievementsScreen() {
                         </View>
                     </View>
 
-                    {/* Progress Bar Container */}
+                    {}
                     <View style={s.progressContainer}>
                         <View style={[s.progressBarBg, { backgroundColor: c.base }]}>
                             <View style={[s.progressBarFill, { width: `${progress}%`, backgroundColor: c.emerald }]} />
@@ -96,7 +96,7 @@ export default function AchievementsScreen() {
                     </View>
                 </View>
 
-                {/* Grid Header */}
+                {}
                 <View style={s.gridHeader}>
                     <Text style={[s.sectionLabel, { color: c.subtle }]}>
                         {isTR ? 'TÜM BAŞARIMLAR' : 'ALL ACHIEVEMENTS'}
@@ -104,7 +104,7 @@ export default function AchievementsScreen() {
                     <Award size={16} color={c.dim} />
                 </View>
 
-                {/* Modern Badges Grid */}
+                {}
                 <View style={s.badgesGrid}>
                     {BADGES.map((badge) => {
                         const isUnlocked = achievements.includes(badge.id) || (badge.id === 'pro_user' && user?.isPro);

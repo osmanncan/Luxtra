@@ -14,9 +14,6 @@ try {
 } catch (error) {
     console.log('[Luxtra] RevenueCat loading error:', error);
 }
-
-// !! IMPORTANT: Replace this with your REAL RevenueCat API key from https://app.revenuecat.com
-// For Google Play: Use the "Google Play" platform API key
 const REVENUE_CAT_API_KEY = Platform.select({
     android: process.env.EXPO_PUBLIC_REVENUE_CAT_API_KEY_ANDROID,
     ios: process.env.EXPO_PUBLIC_REVENUE_CAT_API_KEY_IOS,
@@ -24,10 +21,7 @@ const REVENUE_CAT_API_KEY = Platform.select({
 });
 
 export const PurchaseService = {
-    /**
-     * Initialize RevenueCat SDK.
-     * Must be called once at app startup.
-     */
+    
     initialize: async () => {
         try {
             if (isNativeAvailable && Purchases) {
@@ -40,11 +34,6 @@ export const PurchaseService = {
             console.warn('[Luxtra] RevenueCat Init Error:', error);
         }
     },
-
-    /**
-     * Identify the user in RevenueCat (links purchases to user account).
-     * Call this after login.
-     */
     identifyUser: async (userId: string) => {
         try {
             if (isNativeAvailable && Purchases) {
@@ -55,11 +44,6 @@ export const PurchaseService = {
             console.warn('[Luxtra] RevenueCat identify error:', error);
         }
     },
-
-    /**
-     * Fetch available subscription packages from RevenueCat.
-     * Returns an empty array if RevenueCat is not available (e.g., Expo Go).
-     */
     getPackages: async (): Promise<any[]> => {
         try {
             if (!isNativeAvailable || !Purchases) {
@@ -79,12 +63,6 @@ export const PurchaseService = {
             return [];
         }
     },
-
-    /**
-     * Purchase a subscription package through Google Play / App Store.
-     * Returns true only if the purchase is verified by RevenueCat.
-     * NO mock/fallback — real payment required.
-     */
     purchasePackage: async (pkg: any): Promise<{ success: boolean; error?: string }> => {
         if (!isNativeAvailable || !Purchases) {
             return {
@@ -130,11 +108,6 @@ export const PurchaseService = {
             };
         }
     },
-
-    /**
-     * Check if the current user has an active Pro subscription.
-     * Queries RevenueCat's servers for the latest status.
-     */
     checkProStatus: async (): Promise<boolean> => {
         try {
             if (!isNativeAvailable || !Purchases) {
@@ -148,11 +121,6 @@ export const PurchaseService = {
             return false;
         }
     },
-
-    /**
-     * Restore previous purchases (e.g., after reinstall or new device).
-     * Returns true if a Pro entitlement is found after restoration.
-     */
     restorePurchases: async (): Promise<boolean> => {
         if (!isNativeAvailable || !Purchases) {
             return false;
@@ -166,11 +134,6 @@ export const PurchaseService = {
             return false;
         }
     },
-
-    /**
-     * Check if RevenueCat native module is available.
-     * Returns false in Expo Go or web environments.
-     */
     isAvailable: (): boolean => {
         return isNativeAvailable && Purchases !== null;
     },

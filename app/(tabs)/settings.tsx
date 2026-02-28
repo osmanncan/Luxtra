@@ -137,10 +137,10 @@ export default function SettingsScreen() {
       <StatusBar barStyle={c.statusBarStyle} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
-        {/* Header */}
+        {}
         <Text style={[s.title, { color: c.offWhite }]}>{t.settingsTitle}</Text>
 
-        {/* Account Card */}
+        {}
         <View style={[s.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
           <TouchableOpacity
             style={s.accountRow}
@@ -164,7 +164,7 @@ export default function SettingsScreen() {
             <ChevronRight size={18} color={c.dim} />
           </TouchableOpacity>
 
-          {/* Stats */}
+          {}
           <View style={[s.statsRow, { borderTopColor: c.cardBorder }]}>
             <View style={s.stat}>
               <Text style={[s.statNum, { color: c.offWhite }]}>{subscriptions.length}</Text>
@@ -178,7 +178,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Pro Upgrade */}
+        {}
         {!isPro && (
           <TouchableOpacity
             style={[s.proCard, { backgroundColor: c.emerald + '10', borderColor: c.emerald + '25' }]}
@@ -194,10 +194,10 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         )}
 
-        {/* App Settings */}
+        {}
         <Text style={[s.sectionLabel, { color: c.subtle }]}>{t.appSettings}</Text>
         <View style={[s.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-          {/* Language */}
+          {}
           <TouchableOpacity style={s.settingRow} onPress={() => {
             tap();
             const langs: Array<'en' | 'tr' | 'es' | 'de' | 'fr' | 'it' | 'pt' | 'ar'> = ['en', 'tr', 'es', 'de', 'fr', 'it', 'pt', 'ar'];
@@ -235,7 +235,7 @@ export default function SettingsScreen() {
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 
-          {/* Currency */}
+          {}
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => {
@@ -262,7 +262,7 @@ export default function SettingsScreen() {
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 
-          {/* Theme */}
+          {}
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => {
@@ -306,7 +306,7 @@ export default function SettingsScreen() {
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 
-          {/* Budget — Now FREE for all users */}
+          {}
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => {
@@ -348,12 +348,12 @@ export default function SettingsScreen() {
           )}
         </View>
 
-        {/* Quick Actions */}
+        {}
         <Text style={[s.sectionLabel, { color: c.subtle }]}>
           {isTR ? 'HIZLI ERİŞİM' : 'QUICK ACCESS'}
         </Text>
         <View style={[s.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-          {/* AI Insights — Pro only */}
+          {}
           <TouchableOpacity
             style={s.settingRow}
             onPress={() => {
@@ -437,9 +437,7 @@ export default function SettingsScreen() {
               <ChevronRight size={16} color={c.dim} />
             </TouchableOpacity>
           )}
-
-
-          {/* About */}
+          {}
           <TouchableOpacity
             style={s.settingRow}
             onPress={() => {
@@ -461,13 +459,13 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Security & Alerts */}
+        {}
         <Text style={[s.sectionLabel, { color: c.subtle }]}>
           {t.securityAlerts}
         </Text>
         <View style={[s.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
 
-          {/* Biometric Lock */}
+          {}
           {hasBiometrics && (
             <TouchableOpacity
               style={s.settingRow}
@@ -515,7 +513,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Global Notifications Toggle */}
+          {}
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => {
@@ -546,13 +544,13 @@ export default function SettingsScreen() {
             </View>
           </TouchableOpacity>
 
-          {/* Notification Time */}
+          {}
           {notificationsEnabled && (
             <TouchableOpacity
               style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
               onPress={() => {
                 tap();
-                // Simple cycle for now: 08:00 -> 09:00 -> 10:00
+                
                 const times = ['08:00', '09:00', '10:00', '18:00', '20:00'];
                 const idx = times.indexOf(notificationTime);
                 setNotificationTime(times[(idx + 1) % times.length]);
@@ -567,7 +565,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Test Notification */}
+          {}
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={async () => {
@@ -577,7 +575,7 @@ export default function SettingsScreen() {
                 'test-notif',
                 'Luxtra ⚡',
                 isTR ? 'Bu bir test bildirimidir!' : 'This is a test notification!',
-                new Date(Date.now() + 2000), // 2 seconds later
+                new Date(Date.now() + 2000), 
                 { type: 'test' }
               );
               Alert.alert(isTR ? 'Başarılı' : 'Success', t.testNotifySuccess);
@@ -590,7 +588,7 @@ export default function SettingsScreen() {
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 
-          {/* Privacy & Data */}
+          {}
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => {
@@ -616,7 +614,7 @@ export default function SettingsScreen() {
             <ChevronRight size={16} color={c.dim} />
           </TouchableOpacity>
 
-          {/* Reset Warning */}
+          {}
           <TouchableOpacity
             style={[s.settingRow, { borderTopWidth: 1, borderTopColor: c.cardBorder + '50' }]}
             onPress={() => {
@@ -646,7 +644,7 @@ export default function SettingsScreen() {
 
         </View>
 
-        {/* Sign Out */}
+        {}
         <TouchableOpacity
           style={[s.signOutBtn, { backgroundColor: c.red + '10', borderColor: c.red + '20' }]}
           onPress={() => { tap(); handleSignOut(); }}
@@ -674,16 +672,12 @@ const s = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 24,
   },
-
-  /* Card */
   card: {
     borderRadius: 16,
     borderWidth: 1,
     marginBottom: 16,
     overflow: 'hidden',
   },
-
-  /* Account */
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -736,8 +730,6 @@ const s = StyleSheet.create({
     shadowRadius: 1,
     elevation: 2,
   },
-
-  /* Stats */
   statsRow: {
     flexDirection: 'row',
     borderTopWidth: 1,
@@ -759,8 +751,6 @@ const s = StyleSheet.create({
   statDivider: {
     width: 1,
   },
-
-  /* Pro Card */
   proCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -779,8 +769,6 @@ const s = StyleSheet.create({
     fontWeight: '500',
     marginTop: 2,
   },
-
-  /* Section */
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
@@ -788,8 +776,6 @@ const s = StyleSheet.create({
     marginBottom: 8,
     marginLeft: 4,
   },
-
-  /* Setting Rows */
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -812,8 +798,6 @@ const s = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-
-  /* Budget Input */
   budgetInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -841,8 +825,6 @@ const s = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-
-  /* Sign Out */
   signOutBtn: {
     flexDirection: 'row',
     alignItems: 'center',

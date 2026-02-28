@@ -326,8 +326,6 @@ const s = StyleSheet.create({
   emptyHint: { fontSize: 14, marginBottom: 20, textAlign: 'center' },
   emptyBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F1F5F9', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
   emptyBtnText: { color: '#0F1419', fontSize: 14, fontWeight: '700' },
-
-  /* Slot counter */
   slotBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10, marginHorizontal: 20, marginBottom: 8 },
   slotText: { fontSize: 12, fontWeight: '700' },
   slotUpgrade: { fontSize: 12, fontWeight: '700' },

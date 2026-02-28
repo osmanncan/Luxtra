@@ -27,18 +27,16 @@ export interface ThemeColors {
     inputBg: string;
     sectionBg: string;
 }
-
-// Light Theme Colors
 const lightColors: ThemeColors = {
-    base: '#F7F7F9',      // Apple-like light gray
-    card: '#FFFFFF',      // Pure white
-    cardBorder: '#E5E5EA', // Apple standard light border
-    offWhite: '#1C1C1E',  // Very dark gray text
+    base: '#F7F7F9',      
+    card: '#FFFFFF',      
+    cardBorder: '#E5E5EA', 
+    offWhite: '#1C1C1E',  
     pureWhite: '#FFFFFF',
-    muted: '#8E8E93',     // Apple standard muted text
+    muted: '#8E8E93',     
     subtle: '#AEAEB2',
     dim: '#C7C7CC',
-    emerald: '#059669',   // Warm emerald — vibrant but not harsh, premium feel
+    emerald: '#059669',   
     amber: '#FF9500',     
     red: '#FF3B30',       
     blue: '#007AFF',      
@@ -56,61 +54,23 @@ const lightColors: ThemeColors = {
     inputBg: '#F2F2F7',
     sectionBg: '#F7F7F9',
 };
-
-// ==========================================
-// 🚀 SUPREME TIER (Matte Dark Gray x Neon Chartreuse) - COMMENTED OUT
-// ==========================================
-/*
-const darkColorsSupreme: ThemeColors = {
-    base: '#111113',       
-    card: '#1A1A1D',       
-    cardBorder: 'rgba(255, 255, 255, 0.06)', 
-    offWhite: '#EDEDED',   
-    pureWhite: '#FFFFFF',
-    muted: '#A0A0A5',
-    subtle: '#707078',
-    dim: '#3A3A40',
-    emerald: '#D9F950',    
-    amber: '#FF9F0A',      
-    red: '#FF453A',        
-    blue: '#409CFF',       
-    purple: '#BF5AF2',     
-    deepSlate: '#111113',
-    gunmetal: '#1A1A1D',
-    burgundy: '#FF375F',   
-    borderOnDark: 'rgba(255, 255, 255, 0.06)',
-    borderOnLight: '#E5E5EA',
-    mutedTextOnDark: '#A0A0A5',
-    mutedTextOnLight: '#707078',
-    statusBarStyle: 'light-content',
-    tabBarBg: '#111113',
-    tabBarBorder: 'rgba(255, 255, 255, 0.04)',
-    inputBg: '#212124',
-    sectionBg: '#151518',
-};
-*/
-
-// ==========================================
-// 🎨 ELECTRIC NEON TIER (Active) 
-// Deep OLED Black x Vibrant Neon Accents
-// ==========================================
 const darkColorsElectric: ThemeColors = {
-    base: '#000000',       // True OLED Black
-    card: '#161618',       // Sleek Dark Card
-    cardBorder: '#27272A', // Precise, sharp lines
-    offWhite: '#FFFFFF',   // Pure white text
+    base: '#000000',       
+    card: '#161618',       
+    cardBorder: '#27272A', 
+    offWhite: '#FFFFFF',   
     pureWhite: '#FFFFFF',
     muted: '#A1A1AA',
     subtle: '#71717A',
     dim: '#3F3F46',
-    emerald: '#00FF87',    // Vibrant Electric Green (Striking)
-    amber: '#FF9F0A',      // Glowing Amber
-    red: '#FF453A',        // Intense Red
-    blue: '#0A84FF',       // Luminous Blue
-    purple: '#BF5AF2',     // Vivid Purple
+    emerald: '#00FF87',    
+    amber: '#FF9F0A',      
+    red: '#FF453A',        
+    blue: '#0A84FF',       
+    purple: '#BF5AF2',     
     deepSlate: '#000000',
     gunmetal: '#161618',
-    burgundy: '#FF375F',   // Pinkish Red
+    burgundy: '#FF375F',   
     borderOnDark: '#27272A',
     borderOnLight: '#E5E7EB',
     mutedTextOnDark: '#A1A1AA',
@@ -134,10 +94,10 @@ const darkColorsOcean: ThemeColors = {
 
 const darkColorsBurgundy: ThemeColors = {
     ...darkColorsElectric,
-    base: '#2C0B1B', // Dark Wine
+    base: '#2C0B1B', 
     card: '#3D0E25',
     cardBorder: '#5E1B3A',
-    emerald: '#E8B4CA', // Rose gold
+    emerald: '#E8B4CA', 
     sectionBg: '#2C0B1B',
     tabBarBg: '#2C0B1B',
 };
@@ -147,27 +107,27 @@ const darkColorsForest: ThemeColors = {
     base: '#0B2015',
     card: '#123020',
     cardBorder: '#1A422D',
-    emerald: '#A8FF50', // Lime
+    emerald: '#A8FF50', 
     sectionBg: '#0B2015',
     tabBarBg: '#0B2015',
 };
 
 const lightColorsSunrise: ThemeColors = {
     ...lightColors,
-    base: '#FFF3E0', // Beige
+    base: '#FFF3E0', 
     card: '#FFFFFF',
     cardBorder: '#FFE0B2',
-    emerald: '#D84315', // Coral/Orange
+    emerald: '#D84315', 
     sectionBg: '#FFF3E0',
     tabBarBg: '#FFF3E0',
 };
 
 const darkColorsCosmos: ThemeColors = {
     ...darkColorsElectric,
-    base: '#0F041A', // Deep purple
+    base: '#0F041A', 
     card: '#1B0830',
     cardBorder: '#2E1054',
-    emerald: '#E0B0FF', // Mauve
+    emerald: '#E0B0FF', 
     sectionBg: '#0F041A',
     tabBarBg: '#0F041A',
 };
@@ -188,5 +148,3 @@ export function useThemeColors(): ThemeColors {
 }
 
 export { darkColors, lightColors };
-
-

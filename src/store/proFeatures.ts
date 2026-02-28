@@ -17,7 +17,7 @@ export type ProFeature = typeof PRO_FEATURES[keyof typeof PRO_FEATURES];
 
 export function isFeatureLocked(feature: ProFeature, isPro: boolean): boolean {
     if (isPro) return false;
-    // Specific free features
+    
     if (feature === 'biometric_lock' || feature === 'budget_tracking' || feature === 'custom_categories') return false;
     return true;
 }
@@ -37,8 +37,6 @@ export function getRemainingSlots(type: 'subscription' | 'responsibility', curre
     const max = type === 'subscription' ? FREE_LIMITS.maxSubscriptions : FREE_LIMITS.maxResponsibilities;
     return Math.max(0, max - currentCount);
 }
-
-// Feature descriptions for paywall
 export const FEATURE_COMPARISON = {
     en: {
         free: {

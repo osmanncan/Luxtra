@@ -1,24 +1,18 @@
 export const TrustPalette = {
-  // Core backgrounds
+  
   base: '#0F1419',
   card: '#1E293B',
   cardBorder: '#334155',
-
-  // Text
   offWhite: '#F1F5F9',
   pureWhite: '#FFFFFF',
   muted: '#94A3B8',
   subtle: '#64748B',
   dim: '#475569',
-
-  // Accents
   emerald: '#10B981',
   amber: '#F59E0B',
   red: '#EF4444',
   blue: '#3B82F6',
   purple: '#8B5CF6',
-
-  // Legacy (for backward compat)
   deepSlate: '#0F1419',
   gunmetal: '#1E293B',
   burgundy: '#EF4444',

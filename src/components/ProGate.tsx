@@ -7,14 +7,8 @@ import { useStore } from '../store/useStore';
 
 interface ProGateProps {
     children: React.ReactNode;
-    feature?: string; // label for what's locked
+    feature?: string; 
 }
-
-/**
- * Wraps content that requires Pro.
- * If user is not Pro, shows a lock overlay with upgrade prompt.
- * If user is Pro, renders children normally.
- */
 export default function ProGate({ children, feature }: ProGateProps) {
     const isPro = useStore(s => s.user?.isPro ?? false);
     const language = useStore(s => s.language);
@@ -28,14 +22,14 @@ export default function ProGate({ children, feature }: ProGateProps) {
 
     return (
         <View style={s.container}>
-            {/* Blurred/dimmed content behind */}
+            {}
             <View style={s.contentWrap} pointerEvents="none">
                 <View style={{ opacity: 0.3 }}>
                     {children}
                 </View>
             </View>
 
-            {/* Lock overlay */}
+            {}
             <View style={[s.overlay, { backgroundColor: c.base + 'E0' }]}>
                 <View style={[s.lockCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                     <View style={[s.lockIcon, { backgroundColor: c.amber + '15' }]}>
